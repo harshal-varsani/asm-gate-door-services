@@ -823,6 +823,16 @@ const uid = id;
         return;
       }
 
+      if (import.meta.env.PUBLIC_PREVIEW_SITE === 'true') {
+        // Preview deployments (e.g. GitHub Pages) have no form backend: say so
+        // honestly instead of pretending the request was sent.
+        const text = root.querySelector<HTMLElement>('[data-form-alert-text]');
+        if (text) text.textContent = 'This is a preview of the website, so quote requests are not sent anywhere yet. The form will be connected before launch.';
+        showAlert('Preview site: this form isn’t connected yet.');
+        status.textContent = '';
+        return;
+      }
+
       setSending(true);
       status.textContent = 'Sending your request…';
       try {

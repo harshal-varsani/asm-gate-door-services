@@ -111,6 +111,8 @@ Links can preselect the form: `/contact/?service=gate&type=Sliding%20gates&prope
 
 Any static host works (Netlify, Vercel, Cloudflare Pages, GitHub Pages). Build command `npm run build`, publish directory `dist`.
 
+**Preview on GitHub Pages:** every push to `main` publishes a preview to `https://<owner>.github.io/<repo>/` via `.github/workflows/pages.yml`. Because that address has a sub-path, the workflow runs `scripts/rebase-for-subpath.mjs` after the build to point links at `/<repo>/`. The preview is built with `PUBLIC_PREVIEW_SITE=true`, so the quote form tells visitors it isn't connected instead of pretending to send. For the real launch, host at the domain root (e.g. Netlify) where neither step is used.
+
 ## Accessibility & performance notes
 
 - Semantic landmarks, skip link, one `h1` per page, labelled controls, keyboard-operable menu, accordion, gallery filters and lightbox (native `<dialog>`), visible focus states.
