@@ -1,0 +1,606 @@
+---
+/**
+ * Service page template — used by Garage doors, Gates, Automation & access
+ * and Repairs & maintenance. Content comes from src/data/services.ts.
+ *
+ * Slots:
+ *   after-intro   — content between the intro strip and the category catalogue
+ *   after-catalogue — content after the categories (before comparison/FAQ)
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from './PageHero.astro';
+import Photo from './Photo.astro';
+import Icon from './Icon.astro';
+import Faq from './Faq.astro';
+import CtaBand from './CtaBand.astro';
+import { type ServicePage } from '../data/services';
+import { serviceSchema, breadcrumbSchema, faqSchema } from '../lib/schema';
+import type { ImageKey } from '../data/images';
+
+interface Props {
+  page: ServicePage;
+  ctaImage?: ImageKey;
+  ctaHeading?: string;
+  ctaText?: string;
+}
+const { page, ctaImage, ctaHeading, ctaText } = Astro.props;
+const base = Astro.site ?? Astro.url;
+const quoteBase = `/contact/?service=${page.formService}`;
+
+const schema = [
+  serviceSchema(base, {
+    name: page.name,
+    description: page.seoDescription,
+    path: page.path,
+    offers: page.categories.map((c) => c.name),
+  }),
+  breadcrumbSchema(base, [
+    { name: 'Home', path: '/' },
+    { name: page.name, path: page.path },
+  ]),
+  faqSchema(page.faqs),
+];
+---
+
+<BaseLayout title={page.seoTitle} description={page.seoDescription} ogImage={page.image} overlayHeader schema={schema}>
+  <PageHero
+    heading={page.heading}
+    intro={page.intro}
+    image={page.image}
+    crumbs={[{ name: page.name, path: page.path }]}
+    quoteHref={`${quoteBase}#quote`}
+  />
+
+  <slot name="after-intro" />
+
+  <section class="catalogue on-light" aria-label={`${page.name} options`}>
+    <div class="wrap catalogue__grid">
+      <nav class="catalogue__index" aria-label={`${page.name} types`} data-index>
+        <p class="label catalogue__index-label">{page.name}</p>
+        <ul role="list">
+          {
+            page.categories.map((c) => (
+              <li>
+                <a href={`#${c.id}`} data-index-link={c.id}>
+                  {c.short}
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </nav>
+
+      <div class="catalogue__items">
+        {
+          page.categories.map((c) => (
+            <article class="cat" id={c.id} aria-labelledby={`${c.id}-title`} data-cat>
+              <a
+                class="cat__media frame"
+                href={`${quoteBase}&type=${encodeURIComponent(c.name)}#quote`}
+                tabindex="-1"
+                aria-hidden="true"
+                data-reveal
+              >
+                <Photo image={c.image} sizes="(min-width: 64rem) 36vw, 100vw" />
+                <span class="cat__chip">
+                  Ask about {c.short.toLowerCase()} <Icon name="arrow" size={16} />
+                </span>
+              </a>
+              <div class="cat__body">
+                <div class="cat__intro">
+                  <h2 class="cat__title h3" id={`${c.id}-title`}>
+                    {c.name}
+                  </h2>
+                  <p class="cat__summary">{c.summary}</p>
+                </div>
+                <div class="cat__detail">
+                  <p class="cat__text">{c.body}</p>
+                  <ul role="list" class="cat__suits" aria-label="Good for">
+                    {c.suits.map((s) => (
+                      <li>
+                        <Icon name="check" size={16} />
+                        {s}
+                      </li>
+                    ))}
+                  </ul>
+                  {c.specs && (
+                    <dl class="cat__specs">
+                      {c.specs.map((s) => (
+                        <div>
+                          <dt class="label">{s.label}</dt>
+                          <dd>{s.value}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  )}
+                  <a href={`${quoteBase}&type=${encodeURIComponent(c.name)}#quote`} class="link-arrow cat__cta">
+                    Enquire about {c.short.toLowerCase()}
+                    <Icon name="arrow" size={16} />
+                  </a>
+                </div>
+              </div>
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <slot name="after-catalogue" />
+
+  {
+    page.priceFactors && (
+      <section class="price section on-dark" aria-labelledby="price-heading">
+        <div class="wrap">
+          <div class="section-head section-head--split">
+            <h2 id="price-heading">{page.priceFactors.heading}</h2>
+            <p class="lead">{page.priceFactors.intro}</p>
+          </div>
+          <ol role="list" class="price__list">
+            {page.priceFactors.factors.map((f) => (
+              <li class="price__item">
+                <h3 class="price__title">{f.title}</h3>
+                <p>{f.text}</p>
+              </li>
+            ))}
+          </ol>
+          <a href={`${quoteBase}#quote`} class="btn price__cta">
+            Get a measured quote <Icon name="arrow" class="icon-arrow" size={18} />
+          </a>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    page.comparison && (
+      <section class="compare section on-bone" aria-labelledby="compare-heading">
+        <div class="wrap">
+          <div class="section-head section-head--split">
+            <h2 id="compare-heading">{page.comparison.heading}</h2>
+            <p class="lead">{page.comparison.intro}</p>
+          </div>
+          <div class="compare__scroll" tabindex="0" role="region" aria-labelledby="compare-heading">
+            <table class="compare__table">
+              <thead>
+                <tr>
+                  <td />
+                  {page.comparison.columns.map((col) => (
+                    <th scope="col">{col}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {page.comparison.rows.map((r) => (
+                  <tr>
+                    <th scope="row" class="label">
+                      {r.label}
+                    </th>
+                    {r.values.map((v) => (
+                      <td>{v}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  <Faq faqs={page.faqs} heading={`${page.name}: questions`} />
+
+  <CtaBand image={ctaImage} heading={ctaHeading} text={ctaText} quoteHref={`${quoteBase}#quote`} />
+</BaseLayout>
+
+<style>
+  .catalogue {
+    padding-block: var(--section);
+  }
+  .catalogue__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--s-6);
+  }
+  .catalogue__index,
+  .catalogue__items {
+    min-width: 0;
+  }
+
+  /* Index: horizontal chip rail on small screens, sticky spec index on wide */
+  .catalogue__index {
+    position: sticky;
+    top: var(--header-h);
+    z-index: 5;
+    margin-inline: calc(var(--gutter) * -1);
+    padding: 0.75rem var(--gutter);
+    background: color-mix(in srgb, var(--limestone) 94%, transparent);
+    backdrop-filter: saturate(1.2) blur(8px);
+    border-bottom: 1px solid var(--line);
+  }
+  .catalogue__index-label {
+    display: none;
+  }
+  .catalogue__index ul {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin: 0;
+  }
+  .catalogue__index ul::-webkit-scrollbar {
+    display: none;
+  }
+  .catalogue__index a {
+    display: block;
+    padding: 0.5rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    font-size: 0.875rem;
+    font-weight: 600;
+    font-stretch: 108%;
+    white-space: nowrap;
+    text-decoration: none;
+    color: var(--ink-soft);
+    transition: color var(--t-fast), border-color var(--t-fast), background-color var(--t-fast);
+  }
+  .catalogue__index a:hover {
+    color: var(--ink);
+    border-color: var(--ink);
+  }
+  .catalogue__index a.is-active {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bone);
+  }
+
+  @media (min-width: 64rem) {
+    .catalogue__grid {
+      grid-template-columns: minmax(11rem, 2.6fr) minmax(0, 9.4fr);
+      column-gap: var(--s-8);
+    }
+    .catalogue__index {
+      top: calc(var(--header-h) + 2rem);
+      align-self: start;
+      margin: 0;
+      padding: 0;
+      background: none;
+      backdrop-filter: none;
+      border: 0;
+    }
+    .catalogue__index-label {
+      display: block;
+      padding-bottom: var(--s-4);
+      margin-bottom: var(--s-2);
+      color: var(--ink-soft);
+      border-bottom: 2px solid transparent;
+      border-image: var(--groove-light) 1;
+    }
+    .catalogue__index ul {
+      display: grid;
+      gap: 0;
+      overflow: visible;
+    }
+    .catalogue__index a {
+      position: relative;
+      padding: 0.7rem 0 0.7rem 1.1rem;
+      border: 0;
+      border-bottom: 1px solid var(--line);
+      font-size: 1rem;
+      font-stretch: 110%;
+    }
+    .catalogue__index a::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 50%;
+      width: 0.45rem;
+      height: 2px;
+      background: var(--line-strong);
+      transition: width var(--t-med) var(--ease-out), background-color var(--t-fast);
+    }
+    .catalogue__index a:hover {
+      border-color: var(--line);
+    }
+    .catalogue__index a.is-active {
+      background: none;
+      color: var(--ink);
+      border-color: var(--line);
+    }
+    .catalogue__index a.is-active::before {
+      width: 0.7rem;
+      background: var(--bronze);
+    }
+  }
+
+  /* Category panel */
+  .cat {
+    scroll-margin-top: calc(var(--header-h) + 5rem);
+  }
+  .cat + .cat {
+    margin-top: clamp(3rem, 2rem + 3vw, 4.5rem);
+    padding-top: clamp(3rem, 2rem + 3vw, 4.5rem);
+    border-top: 1px solid var(--line-strong);
+  }
+  .cat__media {
+    display: block;
+    aspect-ratio: 16 / 10;
+  }
+  .cat__media :global(img) {
+    transition: transform 1.1s var(--ease-out), filter 0.6s ease;
+  }
+  .cat__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(14 15 17 / 0.55), transparent 45%);
+    opacity: 0;
+    transition: opacity 0.5s ease;
+  }
+  .cat__chip {
+    position: absolute;
+    left: 1rem;
+    bottom: 1rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    background: var(--bone);
+    color: var(--ink);
+    font-size: 0.8125rem;
+    font-weight: 650;
+    font-stretch: 110%;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.4s ease, transform 0.5s var(--ease-out);
+  }
+  .cat__chip :global(svg) {
+    color: var(--bronze-ink);
+  }
+  @media (hover: hover) {
+    .cat:hover .cat__media :global(img) {
+      transform: scale(1.05);
+    }
+    .cat:hover .cat__media::after {
+      opacity: 1;
+    }
+    .cat:hover .cat__chip {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  .cat__body {
+    display: grid;
+    gap: var(--s-5);
+    padding-top: var(--s-6);
+  }
+  .cat__title {
+    font-size: clamp(1.875rem, 1.3rem + 1.6vw, 2.75rem);
+    font-weight: 760;
+    font-stretch: 118%;
+    letter-spacing: -0.028em;
+    line-height: 1.02;
+    transition: color 0.3s ease;
+  }
+  .cat__title::after {
+    content: '';
+    display: block;
+    width: 2.5rem;
+    height: 2px;
+    margin-top: var(--s-4);
+    background: var(--bronze);
+    transform-origin: left;
+    transition: width 0.6s var(--ease-out);
+  }
+  .cat:hover .cat__title::after {
+    width: 5rem;
+  }
+  .cat__summary {
+    margin-top: var(--s-4);
+    color: var(--ink-soft);
+    font-size: var(--step-lead);
+    line-height: 1.45;
+    max-width: 34ch;
+  }
+  .cat__text {
+    color: var(--ink-soft);
+    max-width: 60ch;
+  }
+  .cat__suits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--s-5);
+  }
+  .cat__suits li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.4rem 0.75rem 0.4rem 0.6rem;
+    background: var(--bone);
+    border: 1px solid var(--line);
+    font-size: 0.875rem;
+    font-weight: 540;
+  }
+  .cat__suits :global(svg) {
+    color: var(--bronze-ink);
+  }
+  .cat__specs {
+    display: grid;
+    margin-top: var(--s-5);
+    border-top: 1px solid var(--line-strong);
+  }
+  .cat__specs > div {
+    display: grid;
+    grid-template-columns: minmax(7rem, 0.4fr) 1fr;
+    gap: var(--s-4);
+    padding-block: 0.8rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .cat__specs dt {
+    color: var(--ink-soft);
+    padding-top: 0.2rem;
+  }
+  .cat__specs dd {
+    margin: 0;
+    font-size: 0.9375rem;
+  }
+  .cat__cta {
+    margin-top: var(--s-6);
+  }
+  @media (min-width: 48rem) and (max-width: 63.99rem) {
+    .cat__body {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-7);
+    }
+  }
+  /* Desktop: a spec-sheet row — photo beside the details, photo holds while the text scrolls. */
+  @media (min-width: 64rem) {
+    .cat {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+      column-gap: var(--s-7);
+      align-items: start;
+    }
+    .cat__media {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      aspect-ratio: 4 / 3.3;
+    }
+    .cat__body {
+      padding-top: 0;
+    }
+    .cat__summary {
+      font-size: 1.125rem;
+    }
+  }
+
+  /* Price factors */
+  .price__list {
+    display: grid;
+    margin: 0;
+    border-top: 2px solid transparent;
+    border-image: var(--groove-dark) 1;
+  }
+  @media (min-width: 48rem) {
+    .price__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .price__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .price__item {
+    position: relative;
+    display: grid;
+    align-content: start;
+    gap: var(--s-3);
+    padding: var(--s-6) var(--s-5) var(--s-6) 0;
+    border-bottom: 1px solid var(--graphite);
+  }
+  .price__item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: -2px;
+    width: 100%;
+    height: 2px;
+    background: var(--bronze);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .price__item:hover::before {
+    transform: scaleX(1);
+  }
+  @media (min-width: 64rem) {
+    .price__item {
+      border-bottom: 0;
+      border-right: 1px solid var(--graphite);
+      padding-left: var(--s-5);
+    }
+    .price__item:first-child {
+      padding-left: 0;
+    }
+    .price__item:last-child {
+      border-right: 0;
+    }
+  }
+  .price__title {
+    font-size: var(--step-h4);
+    font-stretch: 112%;
+  }
+  .price__item p {
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+  .price__cta {
+    margin-top: var(--s-7);
+  }
+
+  /* Comparison */
+  .compare__scroll {
+    overflow-x: auto;
+    border-top: 2px solid var(--ink);
+  }
+  .compare__table {
+    width: 100%;
+    min-width: 40rem;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+  }
+  .compare__table thead th {
+    padding: 1.1rem 1rem 1.1rem 0;
+    text-align: left;
+    font-size: var(--step-h4);
+    font-weight: 720;
+    font-stretch: 115%;
+    letter-spacing: -0.01em;
+  }
+  .compare__table tbody th {
+    width: 11rem;
+    padding: 1rem 1rem 1rem 0;
+    text-align: left;
+    vertical-align: top;
+    color: var(--ink-soft);
+  }
+  .compare__table td {
+    padding: 1rem 1.25rem 1rem 0;
+    vertical-align: top;
+  }
+  .compare__table tbody tr {
+    border-top: 1px solid var(--line-strong);
+  }
+</style>
+
+<script>
+  // Highlight the index link for the category in view.
+  const links = new Map<string, HTMLElement>();
+  document.querySelectorAll<HTMLElement>('[data-index-link]').forEach((a) => links.set(a.dataset.indexLink!, a));
+  const cats = document.querySelectorAll<HTMLElement>('[data-cat]');
+  if ('IntersectionObserver' in window && cats.length) {
+    const io = new IntersectionObserver(
+      (entries) => {
+        for (const e of entries) {
+          if (!e.isIntersecting) continue;
+          links.forEach((l) => l.classList.remove('is-active'));
+          const active = links.get(e.target.id);
+          active?.classList.add('is-active');
+          // keep the active chip visible in the mobile rail (without moving the page)
+          const rail = active?.closest('ul');
+          if (active && rail && rail.scrollWidth > rail.clientWidth) {
+            rail.scrollTo({ left: active.offsetLeft - rail.clientWidth / 2 + active.clientWidth / 2, behavior: 'smooth' });
+          }
+        }
+      },
+      { rootMargin: '-40% 0px -55% 0px' },
+    );
+    cats.forEach((c) => io.observe(c));
+  }
+</script>

@@ -1,0 +1,193 @@
+---
+/**
+ * "What we do" — the four services as a large typographic index. On wide
+ * screens, hovering or focusing a row swaps the photograph in a sticky frame;
+ * on phones each row carries its own photo.
+ */
+import Photo from '../Photo.astro';
+import Icon from '../Icon.astro';
+import { servicePages } from '../../data/services';
+import { site, isPlaceholder } from '../../config/site';
+---
+
+<section class="svc section on-light" id="services" aria-labelledby="svc-heading">
+  <div class="wrap">
+    <div class="section-head section-head--split">
+      <h2 id="svc-heading">One team for the whole entrance.</h2>
+      <p class="lead">
+        Garage doors, gates, the automation that runs them and the servicing that keeps them working, for homes and commercial properties across <span
+          class:list={{ 'placeholder-text': isPlaceholder(site.serviceArea.primary) }}>{site.serviceArea.primary}</span
+        >.
+      </p>
+    </div>
+
+    <div class="svc__grid" data-svc>
+      <div class="svc__stage frame" aria-hidden="true">
+        {
+          servicePages.map((p, i) => (
+            <div class:list={['svc__stage-img', { 'is-active': i === 0 }]} data-stage={i}>
+              <Photo image={p.homeImage ?? p.image} sizes="(min-width: 64rem) 45vw, 1px" alt="" widths={[720, 1080, 1440]} />
+            </div>
+          ))
+        }
+      </div>
+
+      <ol role="list" class="svc__list">
+        {
+          servicePages.map((p, i) => (
+            <li class:list={['svc__row', { 'is-active': i === 0 }]} data-row={i}>
+              <a href={p.path} class="svc__link">
+                <span class="svc__thumb frame" data-reveal>
+                  <Photo image={p.homeImage ?? p.image} sizes="(min-width: 64rem) 1px, 100vw" widths={[480, 720, 1080]} />
+                </span>
+                <span class="svc__name">
+                  {p.name}
+                  <Icon name="arrow" size={28} />
+                </span>
+                <span class="svc__blurb">{p.navBlurb}</span>
+              </a>
+              <ul role="list" class="svc__subs" aria-label={`${p.name} types`}>
+                {p.categories.map((c) => (
+                  <li>
+                    <a href={`${p.path}#${c.id}`}>{c.short}</a>
+                  </li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<style>
+  .svc__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .svc__stage {
+    display: none;
+  }
+  .svc__list {
+    margin: 0;
+    border-top: 2px solid transparent;
+    border-image: var(--groove-light) 1;
+  }
+  .svc__row {
+    padding-block: var(--s-6);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .svc__link {
+    display: grid;
+    gap: var(--s-3);
+    text-decoration: none;
+    color: var(--ink);
+  }
+  .svc__thumb {
+    aspect-ratio: 16 / 10;
+    margin-bottom: var(--s-3);
+  }
+  .svc__name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-4);
+    font-size: clamp(1.875rem, 1.2rem + 2.6vw, 3.25rem);
+    font-weight: 760;
+    font-stretch: 120%;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+  .svc__name :global(svg) {
+    flex: none;
+    color: var(--bronze-ink);
+    transition: transform var(--t-med) var(--ease-out);
+  }
+  .svc__link:hover .svc__name :global(svg),
+  .svc__link:focus-visible .svc__name :global(svg) {
+    transform: translateX(6px);
+  }
+  .svc__blurb {
+    color: var(--ink-soft);
+    max-width: 44ch;
+  }
+  .svc__subs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem 1.1rem;
+    margin-top: var(--s-4);
+    font-size: 0.875rem;
+    font-weight: 560;
+  }
+  .svc__subs a {
+    color: var(--ink-soft);
+    text-decoration: none;
+  }
+  .svc__subs a:hover {
+    color: var(--ink);
+    text-decoration: underline;
+    text-decoration-color: var(--bronze);
+  }
+
+  @media (min-width: 64rem) {
+    .svc__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-8);
+      align-items: start;
+    }
+    .svc__stage {
+      display: block;
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+      aspect-ratio: 4 / 5;
+      max-height: calc(100vh - var(--header-h) - 4rem);
+      width: 100%;
+    }
+    .svc__stage-img {
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 600ms var(--ease-out), clip-path 900ms var(--ease-door);
+      clip-path: inset(0 0 0 0);
+    }
+    .svc__stage-img.is-active {
+      opacity: 1;
+    }
+    .svc__stage-img :global(img) {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .svc__thumb {
+      display: none;
+    }
+    .svc__row {
+      padding-block: var(--s-6);
+    }
+    /* Active row: the arrow advances and turns bronze; headings stay full ink. */
+    .svc__row .svc__name :global(svg) {
+      color: var(--ink-soft);
+      transition: transform var(--t-med) var(--ease-out), color var(--t-fast);
+    }
+    .svc__row.is-active .svc__name :global(svg) {
+      color: var(--bronze-ink);
+      transform: translateX(8px);
+    }
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-svc]').forEach((root) => {
+    const rows = root.querySelectorAll<HTMLElement>('[data-row]');
+    const stages = root.querySelectorAll<HTMLElement>('[data-stage]');
+    const activate = (i: number) => {
+      rows.forEach((r, n) => r.classList.toggle('is-active', n === i));
+      stages.forEach((s, n) => s.classList.toggle('is-active', n === i));
+    };
+    rows.forEach((row, i) => {
+      row.addEventListener('mouseenter', () => activate(i));
+      row.addEventListener('focusin', () => activate(i));
+    });
+  });
+</script>

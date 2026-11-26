@@ -1,0 +1,556 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import Icon from '../components/Icon.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { getProjects, toSiteImage, largeSrc, projectKeys, categoryLabels, type FilterKey } from '../lib/projects';
+import { breadcrumbSchema } from '../lib/schema';
+import { site } from '../config/site';
+
+const projects = await getProjects();
+const filters: ('all' | FilterKey)[] = ['all', 'residential', 'commercial', 'garage-doors', 'gates', 'automation'];
+const counts = Object.fromEntries(filters.map((f) => [f, f === 'all' ? projects.length : projects.filter((p) => projectKeys(p).includes(f as FilterKey)).length]));
+
+const serviceFor = (cats: string[]) => (cats.includes('garage-doors') ? 'garage-door' : cats.includes('gates') ? 'gate' : 'automation');
+
+const gallery = await Promise.all(
+  projects.map(async (p) => ({
+    id: p.id,
+    title: p.data.title,
+    summary: p.data.summary,
+    location: p.data.location ?? '',
+    meta: projectKeys(p).map((k) => categoryLabels[k]).join(' · '),
+    enquire: `/contact/?service=${serviceFor(p.data.categories)}&type=${encodeURIComponent(p.data.title)}#quote`,
+    images: await Promise.all(
+      p.data.images.map(async (img) => {
+        const s = toSiteImage(img, p.data.title);
+        const large = await largeSrc(s);
+        return { ...large, alt: s.alt, stock: s.stock && site.labelStockImagery };
+      }),
+    ),
+  })),
+);
+
+const base = Astro.site ?? Astro.url;
+---
+
+<BaseLayout
+  title="Projects: Garage Doors & Gates"
+  description="A gallery of garage doors, gates and automation for homes and commercial properties. Filter by residential, commercial, garage doors, gates and automation."
+  ogImage="cedarDoor"
+  overlayHeader
+  schema={[breadcrumbSchema(base, [{ name: 'Home', path: '/' }, { name: 'Projects', path: '/projects/' }])]}
+>
+  <PageHero
+    heading="Projects"
+    intro="Garage doors, gates and automation for homes and businesses. Filter by type, and open any project to see it larger."
+    image="fenceArchitectural"
+    crumbs={[{ name: 'Projects', path: '/projects/' }]}
+    compact
+    showActions={false}
+  />
+
+  <section class="gallery section on-light" aria-labelledby="gallery-heading">
+    <div class="wrap">
+      <h2 id="gallery-heading" class="visually-hidden">Project gallery</h2>
+      {
+        site.labelStockImagery && (
+          <p class="gallery__note">
+            Images marked “Representative image” show the type of work and will be replaced with {site.shortName} project photography.
+          </p>
+        )
+      }
+
+      <div class="filters" role="group" aria-label="Filter projects" data-filters>
+        {
+          filters.map((f) => (
+            <button type="button" class="filters__btn" aria-pressed={f === 'all' ? 'true' : 'false'} data-filter={f}>
+              {f === 'all' ? 'All' : categoryLabels[f]}
+              <span class="filters__count tabular">{counts[f]}</span>
+            </button>
+          ))
+        }
+      </div>
+      <p class="gallery__status" aria-live="polite" data-gallery-status>Showing all {projects.length} projects</p>
+
+      <ul role="list" class="grid" data-grid>
+        {
+          projects.map((p, i) => (
+            <li
+              class:list={['grid__item', { 'grid__item--wide': p.data.featured && i % 3 === 0 }]}
+              data-keys={projectKeys(p).join(' ')}
+              data-index={i}
+              id={p.id}
+            >
+              <button type="button" class="card hover-card" data-open={i} aria-haspopup="dialog">
+                <span class="card__img frame">
+                  <Photo image={toSiteImage(p.data.images[0], p.data.title)} sizes="(min-width: 64rem) 33vw, (min-width: 40rem) 50vw, 100vw" tag />
+                  <span class="hover-chip hover-chip--top" aria-hidden="true">
+                    <Icon name="expand" size={14} /> View larger
+                  </span>
+                  {p.data.images.length > 1 && (
+                    <span class="card__count">
+                      <Icon name="expand" size={14} /> {p.data.images.length} photos
+                    </span>
+                  )}
+                </span>
+                <span class="card__meta">
+                  <span class="card__title">{p.data.title}</span>
+                  <span class="card__cats">{projectKeys(p).map((k) => categoryLabels[k]).join(' · ')}</span>
+                </span>
+              </button>
+            </li>
+          ))
+        }
+      </ul>
+      <p class="gallery__empty" data-empty hidden>No projects in this category yet.</p>
+    </div>
+  </section>
+
+  <dialog class="lb on-dark" aria-labelledby="lb-title" data-lightbox>
+    <div class="lb__inner">
+      <div class="lb__stage">
+        <img class="lb__img" src={gallery[0]?.images[0]?.src} alt={gallery[0]?.images[0]?.alt ?? ''} data-lb-img />
+        <span class="stock-tag" data-lb-stock hidden>Representative image</span>
+        <button type="button" class="lb__nav lb__nav--prev" aria-label="Previous image" data-lb-prev><Icon name="prev" size={26} /></button>
+        <button type="button" class="lb__nav lb__nav--next" aria-label="Next image" data-lb-next><Icon name="next" size={26} /></button>
+      </div>
+      <div class="lb__info">
+        <p class="lb__pos tabular" data-lb-pos></p>
+        <h2 id="lb-title" class="lb__title" data-lb-title></h2>
+        <p class="lb__meta" data-lb-meta></p>
+        <p class="lb__summary" data-lb-summary></p>
+        <a href="/contact/" class="btn lb__cta" data-lb-cta>Enquire about one like this <Icon name="arrow" class="icon-arrow" size={18} /></a>
+      </div>
+      <button type="button" class="lb__close" aria-label="Close" data-lb-close><Icon name="close" size={24} /></button>
+    </div>
+  </dialog>
+  <script type="application/json" id="gallery-data" set:html={JSON.stringify(gallery)} />
+
+  <CtaBand heading="Have a project in mind?" image="duskHome" />
+</BaseLayout>
+
+<style>
+  .gallery__note {
+    margin-bottom: var(--s-6);
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    max-width: 70ch;
+  }
+  .filters {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--gutter) * -1);
+    padding-inline: var(--gutter);
+    padding-bottom: 0.25rem;
+  }
+  .filters::-webkit-scrollbar {
+    display: none;
+  }
+  .filters__btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    flex: none;
+    min-height: 2.75rem;
+    padding: 0.55rem 0.95rem;
+    background: var(--bone);
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--ink);
+    font-size: 0.9375rem;
+    font-weight: 600;
+    font-stretch: 106%;
+    transition: background-color var(--t-fast), border-color var(--t-fast), color var(--t-fast);
+  }
+  .filters__btn:hover {
+    border-color: var(--ink);
+  }
+  .filters__btn[aria-pressed='true'] {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bone);
+  }
+  .filters__count {
+    font-size: 0.75rem;
+    color: var(--ink-soft);
+  }
+  .filters__btn[aria-pressed='true'] .filters__count {
+    color: var(--bronze-hi);
+  }
+  .gallery__status {
+    margin-block: var(--s-4) var(--s-6);
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+  }
+  .grid {
+    display: grid;
+    gap: var(--s-6) var(--s-5);
+    margin: 0;
+  }
+  @media (min-width: 40rem) {
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      grid-auto-flow: dense;
+    }
+    .grid__item--wide {
+      grid-column: span 2;
+    }
+  }
+  .grid__item[hidden] {
+    display: none;
+  }
+  .grid__item {
+    scroll-margin-top: calc(var(--header-h) + 2rem);
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .grid__item.is-entering {
+      animation: card-in 520ms var(--ease-out) both;
+    }
+  }
+  @keyframes card-in {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+  }
+  .card {
+    display: grid;
+    gap: var(--s-4);
+    width: 100%;
+    padding: 0;
+    background: none;
+    border: 0;
+    text-align: left;
+    color: var(--ink);
+  }
+  .card__img {
+    height: clamp(15rem, 22vw + 6rem, 24rem);
+  }
+  .card__img :global(img) {
+    transition: transform 1.1s var(--ease-out);
+  }
+  .card:hover .card__img :global(img) {
+    transform: scale(1.04);
+  }
+  .card__count {
+    position: absolute;
+    left: 0.6rem;
+    bottom: 0.6rem;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.55rem;
+    background: rgb(20 21 23 / 0.8);
+    color: var(--bone);
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+  .card__meta {
+    display: grid;
+    gap: 0.3rem;
+    padding-bottom: var(--s-3);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  .card__title {
+    font-size: var(--step-h4);
+    font-weight: 700;
+    font-stretch: 112%;
+    letter-spacing: -0.01em;
+  }
+  .card:hover .card__title {
+    color: var(--bronze-ink);
+  }
+  .card__cats {
+    color: var(--ink-soft);
+    font-size: 0.8125rem;
+    font-weight: 540;
+  }
+  .gallery__empty {
+    padding: var(--s-8) 0;
+    color: var(--ink-soft);
+  }
+
+  /* Lightbox */
+  .lb {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: rgb(12 12 14 / 0.97);
+    color: var(--bone);
+  }
+  .lb::backdrop {
+    background: rgb(0 0 0 / 0.6);
+  }
+  .lb[open] {
+    animation: lb-in 320ms var(--ease-out);
+  }
+  @keyframes lb-in {
+    from {
+      opacity: 0;
+    }
+  }
+  .lb__inner {
+    position: relative;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    height: 100%;
+  }
+  .lb__stage {
+    position: relative;
+    display: grid;
+    place-items: center;
+    min-height: 0;
+    padding: 4rem var(--gutter) 1rem;
+  }
+  .lb__img {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    background: var(--graphite);
+  }
+  .lb__stage .stock-tag {
+    right: var(--gutter);
+    bottom: 1.6rem;
+  }
+  .lb__nav,
+  .lb__close {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: rgb(20 21 23 / 0.75);
+    border: 1px solid var(--steel);
+    border-radius: var(--radius);
+    color: var(--bone);
+    transition: border-color var(--t-fast), background-color var(--t-fast);
+  }
+  .lb__nav:hover,
+  .lb__close:hover {
+    border-color: var(--bronze);
+    background: var(--basalt);
+  }
+  .lb__nav {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .lb__nav--prev {
+    left: max(0.5rem, calc(var(--gutter) - 1rem));
+  }
+  .lb__nav--next {
+    right: max(0.5rem, calc(var(--gutter) - 1rem));
+  }
+  .lb__close {
+    top: 0.75rem;
+    right: 0.75rem;
+  }
+  .lb__info {
+    display: grid;
+    gap: 0.4rem;
+    padding: var(--s-5) var(--gutter) max(var(--s-5), env(safe-area-inset-bottom));
+    border-top: 1px solid var(--graphite);
+    background: var(--ironsand);
+  }
+  @media (min-width: 64rem) {
+    .lb__inner {
+      grid-template-rows: none;
+      grid-template-columns: minmax(0, 1fr) 24rem;
+    }
+    .lb__stage {
+      padding: 2.5rem 5rem;
+    }
+    .lb__info {
+      align-content: end;
+      padding: var(--s-7) var(--s-6);
+      border-top: 0;
+      border-left: 1px solid var(--graphite);
+    }
+  }
+  .lb__pos {
+    color: var(--ash);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+  }
+  .lb__title {
+    font-size: var(--step-h3);
+    font-stretch: 116%;
+  }
+  .lb__meta {
+    color: var(--bronze-glint);
+    font-size: 0.8125rem;
+    font-weight: 560;
+  }
+  .lb__summary {
+    margin-top: 0.4rem;
+    color: var(--mist);
+    font-size: 0.9375rem;
+    max-width: 52ch;
+  }
+  .lb__cta {
+    justify-self: start;
+    max-width: 100%;
+    margin-top: var(--s-4);
+    white-space: normal;
+    text-align: left;
+  }
+  @media (max-width: 39.99rem) {
+    .lb__summary {
+      display: none;
+    }
+    .lb__cta {
+      width: 100%;
+    }
+  }
+</style>
+
+<script>
+  type Img = { src: string; srcset: string; alt: string; stock: boolean };
+  type Item = { id: string; title: string; summary: string; location: string; meta: string; enquire: string; images: Img[] };
+
+  const data: Item[] = JSON.parse(document.getElementById('gallery-data')!.textContent || '[]');
+  const grid = document.querySelector<HTMLElement>('[data-grid]')!;
+  const items = Array.from(grid.querySelectorAll<HTMLElement>('.grid__item'));
+  const buttons = document.querySelectorAll<HTMLButtonElement>('[data-filter]');
+  const status = document.querySelector<HTMLElement>('[data-gallery-status]')!;
+  const empty = document.querySelector<HTMLElement>('[data-empty]')!;
+
+  // ── Filtering ───────────────────────────────────────
+  const labels: Record<string, string> = {};
+  buttons.forEach((b) => (labels[b.dataset.filter!] = b.firstChild?.textContent?.trim() ?? ''));
+
+  const applyFilter = (key: string) => {
+    let shown = 0;
+    items.forEach((li) => {
+      const match = key === 'all' || li.dataset.keys!.split(' ').includes(key);
+      li.hidden = !match;
+      li.classList.remove('is-entering');
+      if (match) {
+        void li.offsetWidth;
+        li.classList.add('is-entering');
+        shown++;
+      }
+    });
+    buttons.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.filter === key)));
+    empty.hidden = shown > 0;
+    status.textContent = key === 'all' ? `Showing all ${shown} projects` : `Showing ${shown} ${labels[key].toLowerCase()} ${shown === 1 ? 'project' : 'projects'}`;
+  };
+  buttons.forEach((b) => b.addEventListener('click', () => applyFilter(b.dataset.filter!)));
+
+  // ── Lightbox ────────────────────────────────────────
+  const dlg = document.querySelector<HTMLDialogElement>('[data-lightbox]')!;
+  const img = dlg.querySelector<HTMLImageElement>('[data-lb-img]')!;
+  const stock = dlg.querySelector<HTMLElement>('[data-lb-stock]')!;
+  const t = dlg.querySelector<HTMLElement>('[data-lb-title]')!;
+  const meta = dlg.querySelector<HTMLElement>('[data-lb-meta]')!;
+  const summary = dlg.querySelector<HTMLElement>('[data-lb-summary]')!;
+  const pos = dlg.querySelector<HTMLElement>('[data-lb-pos]')!;
+  const cta = dlg.querySelector<HTMLAnchorElement>('[data-lb-cta]')!;
+  const prev = dlg.querySelector<HTMLButtonElement>('[data-lb-prev]')!;
+  const next = dlg.querySelector<HTMLButtonElement>('[data-lb-next]')!;
+  let seq: { p: number; i: number }[] = [];
+  let cur = 0;
+  let opener: HTMLElement | null = null;
+
+  const buildSeq = () => {
+    seq = [];
+    items.forEach((li) => {
+      if (li.hidden) return;
+      const p = Number(li.dataset.index);
+      data[p].images.forEach((_, i) => seq.push({ p, i }));
+    });
+  };
+
+  const render = () => {
+    const { p, i } = seq[cur];
+    const item = data[p];
+    const im = item.images[i];
+    img.src = im.src;
+    img.srcset = im.srcset;
+    img.sizes = '(min-width: 64rem) calc(100vw - 30rem), 100vw';
+    img.alt = im.alt;
+    stock.hidden = !im.stock;
+    t.textContent = item.title;
+    meta.textContent = [item.meta, item.location].filter(Boolean).join(' · ');
+    summary.textContent = item.summary;
+    cta.href = item.enquire;
+    pos.textContent = `${cur + 1} / ${seq.length}`;
+    const single = seq.length < 2;
+    prev.hidden = single;
+    next.hidden = single;
+    // preload neighbour
+    const n = seq[(cur + 1) % seq.length];
+    const pre = new Image();
+    pre.srcset = data[n.p].images[n.i].srcset;
+  };
+
+  const open = (projectIndex: number, from?: HTMLElement) => {
+    buildSeq();
+    cur = Math.max(0, seq.findIndex((s) => s.p === projectIndex));
+    opener = from ?? null;
+    render();
+    dlg.showModal();
+    document.documentElement.style.overflow = 'hidden';
+  };
+  const step = (d: number) => {
+    cur = (cur + d + seq.length) % seq.length;
+    render();
+  };
+
+  document.querySelectorAll<HTMLButtonElement>('[data-open]').forEach((b) =>
+    b.addEventListener('click', () => open(Number(b.dataset.open), b)),
+  );
+  prev.addEventListener('click', () => step(-1));
+  next.addEventListener('click', () => step(1));
+  dlg.querySelector('[data-lb-close]')!.addEventListener('click', () => dlg.close());
+  dlg.addEventListener('close', () => {
+    document.documentElement.style.overflow = '';
+    if (location.hash) history.replaceState(null, '', location.pathname + location.search);
+    opener?.focus();
+  });
+  dlg.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') step(-1);
+    if (e.key === 'ArrowRight') step(1);
+  });
+  dlg.addEventListener('click', (e) => {
+    if (e.target === dlg) dlg.close();
+  });
+
+  // swipe on touch
+  let x0: number | null = null;
+  dlg.addEventListener('touchstart', (e) => (x0 = e.touches[0].clientX), { passive: true });
+  dlg.addEventListener('touchend', (e) => {
+    if (x0 === null) return;
+    const dx = e.changedTouches[0].clientX - x0;
+    if (Math.abs(dx) > 50) step(dx < 0 ? 1 : -1);
+    x0 = null;
+  });
+
+  // Deep link: /projects/#project-id opens that project
+  const fromHash = () => {
+    const id = decodeURIComponent(location.hash.slice(1));
+    const idx = data.findIndex((d) => d.id === id);
+    if (idx >= 0) {
+      const btn = document.querySelector<HTMLElement>(`[data-open="${idx}"]`) ?? undefined;
+      btn?.scrollIntoView({ block: 'center' });
+      open(idx, btn);
+    }
+  };
+  fromHash();
+</script>

@@ -1,0 +1,92 @@
+---
+/** Closing call to action: big statement, quote + call, over a dark photo. */
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { site } from '../config/site';
+import type { ImageKey } from '../data/images';
+
+interface Props {
+  heading?: string;
+  text?: string;
+  image?: ImageKey;
+  quoteHref?: string;
+}
+const {
+  heading = 'Ready when you are.',
+  text = 'Tell us about your door, gate or access system. Photos help, and we’ll come back to you to talk it through.',
+  image = 'garageDark',
+  quoteHref = '/contact/',
+} = Astro.props;
+---
+
+<section class="cta on-dark" aria-labelledby="cta-heading">
+  <div class="cta__media frame" aria-hidden="true">
+    <Photo image={image} sizes="100vw" alt="" />
+  </div>
+  <div class="wrap cta__inner">
+    <h2 id="cta-heading" class="cta__heading">{heading}</h2>
+    <div class="cta__side">
+      <p class="cta__text">{text}</p>
+      <div class="cta__actions">
+        <a href={quoteHref} class="btn">Request a quote <Icon name="arrow" class="icon-arrow" size={18} /></a>
+        <a href={site.contact.phoneHref} class="btn btn--ghost"><Icon name="phone" size={18} /> {site.contact.phoneDisplay}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .cta {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    padding-block: clamp(5rem, 3.5rem + 7vw, 10rem);
+  }
+  .cta__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ironsand);
+  }
+  .cta__media :global(img) {
+    opacity: 0.7;
+    filter: grayscale(0.3);
+  }
+  .cta__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(100deg, rgb(20 21 23 / 0.9) 22%, rgb(20 21 23 / 0.45) 75%, rgb(20 21 23 / 0.3));
+  }
+  .cta__inner {
+    display: grid;
+    gap: var(--s-6);
+    align-items: end;
+  }
+  .cta__heading {
+    font-size: var(--step-display);
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: -0.035em;
+    line-height: 0.94;
+    max-width: 10ch;
+  }
+  .cta__text {
+    color: var(--mist);
+    font-size: var(--step-lead);
+    line-height: 1.5;
+    max-width: 40ch;
+  }
+  .cta__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+  }
+  @media (min-width: 62rem) {
+    .cta__inner {
+      grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+      column-gap: var(--s-8);
+    }
+  }
+</style>

@@ -1,0 +1,122 @@
+---
+/** Repairs: common symptoms, a safety note, and a fast route to booking. */
+import Photo from '../Photo.astro';
+import Icon from '../Icon.astro';
+import { site } from '../../config/site';
+
+const symptoms = [
+  'Door or gate won’t open or close',
+  'Stops halfway or reverses',
+  'Grinding, banging or straining',
+  'Remote or keypad not responding',
+  'Snapped spring or loose cable',
+  'Off its track, dragging or sagging',
+];
+---
+
+<section class="rb section on-light" aria-labelledby="rb-heading">
+  <div class="wrap rb__grid">
+    <div class="rb__photo frame" data-reveal>
+      <Photo image="sectionalWhite" sizes="(min-width: 64rem) 40vw, 100vw" />
+    </div>
+    <div class="rb__copy">
+      <h2 id="rb-heading">Stuck, noisy or not responding?</h2>
+      <p class="lead rb__lead">
+        We diagnose and repair garage doors, gates, motors and remotes, and service them so they keep running.
+      </p>
+      <ul role="list" class="rb__list">
+        {
+          symptoms.map((s) => (
+            <li>
+              <span class="rb__tick" aria-hidden="true" />
+              {s}
+            </li>
+          ))
+        }
+      </ul>
+      <p class="rb__safety">
+        <Icon name="alert" size={20} />
+        <span><strong>Broken spring or cable?</strong> Don’t lift the door or run the motor. Keep clear and call us.</span>
+      </p>
+      <div class="rb__actions">
+        <a href="/repairs-maintenance/#report" class="btn btn--dark">Report a fault <Icon name="arrow" class="icon-arrow" size={18} /></a>
+        <a href={site.contact.phoneHref} class="btn btn--ghost"><Icon name="phone" size={18} /> {site.contact.phoneDisplay}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .rb__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .rb__photo {
+    aspect-ratio: 4 / 3;
+  }
+  .rb__photo :global(img) {
+    filter: grayscale(1) contrast(1.05);
+  }
+  @media (min-width: 64rem) {
+    .rb__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-9);
+      align-items: center;
+    }
+    .rb__photo {
+      aspect-ratio: 4 / 5;
+    }
+  }
+  .rb__lead {
+    margin-top: var(--s-5);
+  }
+  .rb__list {
+    display: grid;
+    gap: 0;
+    margin-top: var(--s-6);
+    border-top: 1px solid var(--line-strong);
+  }
+  @media (min-width: 40rem) {
+    .rb__list {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s-6);
+    }
+  }
+  .rb__list li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--line-strong);
+    font-weight: 540;
+  }
+  .rb__tick {
+    flex: none;
+    width: 0.75rem;
+    height: 2px;
+    background: var(--bronze);
+  }
+  .rb__safety {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: var(--s-6);
+    padding: 1rem 1.1rem;
+    background: var(--bone);
+    border: 1px solid var(--line-strong);
+    font-size: 0.9375rem;
+    color: var(--ink-soft);
+  }
+  .rb__safety :global(svg) {
+    flex: none;
+    color: var(--bronze-ink);
+  }
+  .rb__safety strong {
+    color: var(--ink);
+  }
+  .rb__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-6);
+  }
+</style>

@@ -1,0 +1,84 @@
+---
+/** One stroke family for the whole site: 24px grid, 1.6 stroke, square caps. */
+type Name =
+  | 'arrow'
+  | 'arrow-up-right'
+  | 'phone'
+  | 'mail'
+  | 'menu'
+  | 'close'
+  | 'chevron-down'
+  | 'check'
+  | 'upload'
+  | 'pin'
+  | 'clock'
+  | 'plus'
+  | 'expand'
+  | 'prev'
+  | 'next'
+  | 'alert'
+  | 'remote'
+  | 'console'
+  | 'keypad'
+  | 'intercom'
+  | 'mobile'
+  | 'card'
+  | 'pause'
+  | 'play';
+
+interface Props {
+  name: Name;
+  size?: number | string;
+  class?: string;
+  label?: string;
+}
+
+const { name, size = 24, class: className, label } = Astro.props;
+
+const paths: Record<Name, string> = {
+  arrow: '<path d="M4 12h15M13 6l6 6-6 6"/>',
+  'arrow-up-right': '<path d="M7 17 17 7M8 7h9v9"/>',
+  phone:
+    '<path d="M5 3.5h3.2l1.6 4.2-2.1 1.4a11.5 11.5 0 0 0 7.2 7.2l1.4-2.1 4.2 1.6V19a1.5 1.5 0 0 1-1.6 1.5A16.5 16.5 0 0 1 3.5 5.1 1.5 1.5 0 0 1 5 3.5Z"/>',
+  mail: '<path d="M3.5 5.5h17v13h-17z"/><path d="m3.5 6 8.5 7 8.5-7"/>',
+  menu: '<path d="M3 7h18M3 12h18M3 17h18"/>',
+  close: '<path d="M5.5 5.5l13 13M18.5 5.5l-13 13"/>',
+  'chevron-down': '<path d="m6 9 6 6 6-6"/>',
+  check: '<path d="m4.5 12.5 4.8 4.8L19.5 7"/>',
+  upload: '<path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 15v5h16v-5"/>',
+  pin: '<path d="M12 21s-6.5-6.1-6.5-11a6.5 6.5 0 0 1 13 0c0 4.9-6.5 11-6.5 11Z"/><circle cx="12" cy="10" r="2.3"/>',
+  clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  expand: '<path d="M14 4h6v6M10 20H4v-6M20 4l-7 7M4 20l7-7"/>',
+  prev: '<path d="M15 5l-7 7 7 7"/>',
+  next: '<path d="M9 5l7 7-7 7"/>',
+  alert: '<path d="M12 3.5 21.5 20h-19Z"/><path d="M12 10v4.5M12 17.2v.3"/>',
+  remote: '<rect x="7.5" y="2.5" width="9" height="19" rx="2"/><circle cx="12" cy="8" r="1.8"/><path d="M10 13.5h4M10 16.5h4"/>',
+  console: '<rect x="5.5" y="3.5" width="13" height="17"/><rect x="8.5" y="7" width="7" height="4"/><circle cx="12" cy="15.5" r="1.6"/>',
+  keypad:
+    '<rect x="5.5" y="2.5" width="13" height="19"/><path d="M8.5 6.5h1M11.5 6.5h1M14.5 6.5h1M8.5 10h1M11.5 10h1M14.5 10h1M8.5 13.5h1M11.5 13.5h1M14.5 13.5h1M11.5 17h1"/>',
+  intercom: '<rect x="6" y="2.5" width="12" height="19"/><circle cx="12" cy="7.5" r="2.2"/><path d="M9 13h6M9 15.5h6M9 18h6"/>',
+  mobile: '<rect x="6.5" y="2.5" width="11" height="19" rx="1.5"/><path d="M11 18.5h2"/>',
+  card: '<rect x="3" y="6" width="18" height="12" rx="1"/><path d="M3 10h18M6 14.5h4"/>',
+  pause: '<path d="M8 5v14M16 5v14"/>',
+  play: '<path d="M7 4.5v15l12-7.5Z"/>',
+};
+---
+
+<svg
+  xmlns="http://www.w3.org/2000/svg"
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="1.6"
+  stroke-linecap="square"
+  stroke-linejoin="miter"
+  class:list={[`icon icon-${name}`, className]}
+  aria-hidden={label ? undefined : 'true'}
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  focusable="false"
+  set:html={paths[name]}
+/>

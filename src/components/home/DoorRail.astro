@@ -1,0 +1,180 @@
+---
+/** "Find your door" — a horizontal rail of garage door types. */
+import Photo from '../Photo.astro';
+import Icon from '../Icon.astro';
+import { garageDoors } from '../../data/services';
+---
+
+<section class="rail section on-bone" aria-labelledby="rail-heading">
+  <div class="wrap rail__head">
+    <div>
+      <h2 id="rail-heading">Find your garage door.</h2>
+      <p class="lead rail__lead">Seven ways to close an opening, from economical roller doors to flush architectural designs.</p>
+    </div>
+    <div class="rail__controls">
+      <button type="button" class="rail__btn" aria-label="Previous door types" data-rail-prev>
+        <Icon name="prev" size={22} />
+      </button>
+      <button type="button" class="rail__btn" aria-label="Next door types" data-rail-next>
+        <Icon name="next" size={22} />
+      </button>
+    </div>
+  </div>
+
+  <div class="rail__viewport" data-rail tabindex="0" role="region" aria-label="Garage door types, scrollable">
+    <ul role="list" class="rail__track">
+      {
+        garageDoors.categories.map((c) => (
+          <li class="rail__item">
+            <a href={`${garageDoors.path}#${c.id}`} class="rail__card hover-card">
+              <span class="rail__img frame">
+                <Photo image={c.image} sizes="(min-width: 64rem) 24vw, (min-width: 40rem) 40vw, 78vw" widths={[480, 720, 960]} />
+                <span class="hover-chip" aria-hidden="true">
+                  Explore {c.short.toLowerCase()} <Icon name="arrow" size={16} />
+                </span>
+              </span>
+              <span class="rail__name">
+                {c.short}
+                <Icon name="arrow-up-right" size={20} />
+              </span>
+              <span class="rail__summary">{c.summary}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <div class="wrap rail__foot">
+    <a href={garageDoors.path} class="link-arrow">Compare all garage doors <Icon name="arrow" size={16} /></a>
+  </div>
+</section>
+
+<style>
+  .rail__head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--s-6);
+    margin-bottom: var(--s-7);
+  }
+  .rail__lead {
+    margin-top: var(--s-4);
+  }
+  .rail__controls {
+    display: none;
+    gap: 0.5rem;
+  }
+  @media (min-width: 48rem) {
+    .rail__controls {
+      display: flex;
+    }
+  }
+  .rail__btn {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    background: transparent;
+    border: 1px solid var(--line-strong);
+    border-radius: var(--radius);
+    color: var(--ink);
+    transition: border-color var(--t-fast), background-color var(--t-fast), opacity var(--t-fast);
+  }
+  .rail__btn:hover:not([disabled]) {
+    border-color: var(--ink);
+    background: var(--limestone);
+  }
+  .rail__btn[disabled] {
+    opacity: 0.35;
+    cursor: default;
+  }
+  .rail__viewport {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scroll-padding-inline: var(--gutter);
+    scrollbar-width: none;
+    overscroll-behavior-x: contain;
+  }
+  .rail__viewport::-webkit-scrollbar {
+    display: none;
+  }
+  .rail__viewport:focus-visible {
+    outline-offset: -3px;
+  }
+  .rail__track {
+    display: flex;
+    gap: clamp(0.75rem, 0.5rem + 1vw, 1.5rem);
+    margin: 0;
+    padding-inline: max(var(--gutter), calc((100vw - var(--max)) / 2));
+    width: max-content;
+  }
+  .rail__item {
+    scroll-snap-align: start;
+    width: clamp(15rem, 74vw, 22rem);
+  }
+  @media (min-width: 64rem) {
+    .rail__item {
+      width: clamp(18rem, 22vw, 23rem);
+    }
+  }
+  .rail__card {
+    display: grid;
+    gap: 0.6rem;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .rail__img {
+    aspect-ratio: 4 / 5;
+    margin-bottom: 0.5rem;
+  }
+  .rail__img :global(img) {
+    transition: transform 1.1s var(--ease-out), filter var(--t-med);
+  }
+  .rail__card:hover .rail__img :global(img) {
+    transform: scale(1.05);
+  }
+  .rail__name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line-strong);
+    font-size: var(--step-h3);
+    font-weight: 740;
+    font-stretch: 118%;
+    letter-spacing: -0.02em;
+  }
+  .rail__name :global(svg) {
+    color: var(--bronze-ink);
+    transition: transform var(--t-med) var(--ease-out);
+  }
+  .rail__card:hover .rail__name :global(svg) {
+    transform: translate(3px, -3px);
+  }
+  .rail__summary {
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+  }
+  .rail__foot {
+    margin-top: var(--s-6);
+  }
+</style>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-rail]').forEach((vp) => {
+    const section = vp.closest('section')!;
+    const prev = section.querySelector<HTMLButtonElement>('[data-rail-prev]');
+    const next = section.querySelector<HTMLButtonElement>('[data-rail-next]');
+    const step = () => (vp.querySelector('li')?.getBoundingClientRect().width ?? 300) + 24;
+    const sync = () => {
+      if (prev) prev.disabled = vp.scrollLeft < 4;
+      if (next) next.disabled = vp.scrollLeft + vp.clientWidth >= vp.scrollWidth - 4;
+    };
+    prev?.addEventListener('click', () => vp.scrollBy({ left: -step(), behavior: 'smooth' }));
+    next?.addEventListener('click', () => vp.scrollBy({ left: step(), behavior: 'smooth' }));
+    vp.addEventListener('scroll', sync, { passive: true });
+    window.addEventListener('resize', sync);
+    sync();
+  });
+</script>

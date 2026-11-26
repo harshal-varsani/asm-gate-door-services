@@ -1,0 +1,83 @@
+---
+/**
+ * Photo — renders a registry image (src/data/images.ts) or a local import.
+ * Remote (Unsplash) images get a responsive srcset with automatic AVIF/WebP
+ * from the CDN; local images are optimised by Astro at build time.
+ *
+ * Place inside a `.frame` element that sets the aspect ratio.
+ */
+import { Picture } from 'astro:assets';
+import { images, type ImageKey, type SiteImage } from '../data/images';
+import { site } from '../config/site';
+
+interface Props {
+  image: ImageKey | SiteImage;
+  sizes?: string;
+  widths?: number[];
+  alt?: string;
+  position?: string;
+  priority?: boolean;
+  quality?: number;
+  /** Show the small "Representative image" tag for stock photos. */
+  tag?: boolean;
+  class?: string;
+}
+
+const {
+  image,
+  sizes = '100vw',
+  widths = [480, 720, 960, 1280, 1600, 2000, 2400],
+  alt,
+  position,
+  priority = false,
+  quality = 68,
+  tag = false,
+  class: className,
+} = Astro.props;
+
+const img: SiteImage = typeof image === 'string' ? images[image] : image;
+const altText = alt ?? img.alt;
+const objectPosition = position ?? img.position ?? '50% 50%';
+const showTag = tag && img.stock && site.labelStockImagery;
+
+const isRemote = typeof img.src === 'string';
+let srcset = '';
+let src = '';
+if (isRemote) {
+  const base = `https://images.unsplash.com/photo-${img.src}`;
+  const url = (w: number) => `${base}?auto=format&fit=max&w=${w}&q=${quality}`;
+  srcset = widths.map((w) => `${url(w)} ${w}w`).join(', ');
+  src = url(widths[Math.min(3, widths.length - 1)]);
+}
+---
+
+{
+  isRemote ? (
+    <img
+      src={src}
+      srcset={srcset}
+      sizes={sizes}
+      alt={altText}
+      width="1600"
+      height="1067"
+      loading={priority ? 'eager' : 'lazy'}
+      decoding={priority ? 'sync' : 'async'}
+      fetchpriority={priority ? 'high' : 'auto'}
+      style={`object-position:${objectPosition}`}
+      class={className}
+    />
+  ) : (
+    <Picture
+      src={img.src as ImageMetadata}
+      alt={altText}
+      widths={widths}
+      sizes={sizes}
+      formats={['avif', 'webp']}
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : 'auto'}
+      style={`object-position:${objectPosition}`}
+      class={className}
+    />
+  )
+}
+{showTag && <span class="stock-tag">Representative image</span>}

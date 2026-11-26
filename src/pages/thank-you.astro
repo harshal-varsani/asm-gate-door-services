@@ -1,0 +1,54 @@
+---
+/** Shown after a form submission when JavaScript is unavailable. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { site } from '../config/site';
+---
+
+<BaseLayout title="Thank you" description="Your quote request has been received." noindex hideActionBar>
+  <section class="ty section on-light">
+    <div class="wrap ty__inner">
+      <span class="ty__mark" aria-hidden="true"><Icon name="check" size={32} /></span>
+      <h1>Thanks, your request is in.</h1>
+      <p class="lead">
+        We’ve received your details and will be in touch to talk through the job. If it’s urgent, call us on
+        <a href={site.contact.phoneHref}>{site.contact.phoneDisplay}</a>.
+      </p>
+      <div class="ty__actions">
+        <a href="/" class="btn btn--dark">Back to home</a>
+        <a href="/projects/" class="btn btn--ghost">Browse projects</a>
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ty {
+    min-height: 70vh;
+    display: grid;
+    align-items: center;
+  }
+  .ty__inner {
+    display: grid;
+    gap: var(--s-5);
+    justify-items: start;
+  }
+  .ty__mark {
+    display: grid;
+    place-items: center;
+    width: 4rem;
+    height: 4rem;
+    background: var(--ink);
+    color: var(--bronze-hi);
+  }
+  .ty .lead a {
+    color: var(--ink);
+    font-weight: 650;
+  }
+  .ty__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--s-3);
+    margin-top: var(--s-3);
+  }
+</style>

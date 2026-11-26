@@ -1,0 +1,207 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { site, isPlaceholder } from '../config/site';
+import { servicePages } from '../data/services';
+
+const year = new Date().getFullYear();
+const c = site.contact;
+const social = Object.entries(site.social).filter(([, url]) => url);
+const socialLabel: Record<string, string> = {
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  linkedin: 'LinkedIn',
+  google: 'Google reviews',
+};
+const ph = (v: string) => (isPlaceholder(v) ? 'placeholder-text' : undefined);
+---
+
+<footer class="site-footer on-dark">
+  <div class="wrap footer__grid">
+    <div class="footer__brand">
+      <a href="/" aria-label={`${site.name}, home`} class="footer__logo"><Logo /></a>
+      <p class="footer__statement">
+        Garage doors, gates, automation and repairs for homes and businesses across <span class={ph(site.serviceArea.primary)}>{site.serviceArea.primary}</span>.
+      </p>
+      <a href="/contact/" class="btn">Request a quote <Icon name="arrow" class="icon-arrow" size={18} /></a>
+    </div>
+
+    <nav class="footer__col" aria-label="Services">
+      <p class="label footer__heading">Services</p>
+      <ul role="list">
+        {servicePages.map((p) => <li><a href={p.path}>{p.name}</a></li>)}
+      </ul>
+    </nav>
+
+    <nav class="footer__col" aria-label="Company">
+      <p class="label footer__heading">Company</p>
+      <ul role="list">
+        <li><a href="/projects/">Projects</a></li>
+        <li><a href="/about/">About ASM</a></li>
+        <li><a href="/contact/">Contact &amp; quotes</a></li>
+        <li><a href="/privacy/">Privacy</a></li>
+      </ul>
+    </nav>
+
+    <div class="footer__col footer__contact">
+      <p class="label footer__heading">Get in touch</p>
+      <ul role="list">
+        <li>
+          <a href={c.phoneHref} class="footer__contact-link">
+            <Icon name="phone" size={18} /><span class:list={['tabular', ph(c.phoneDisplay)]}>{c.phoneDisplay}</span>
+          </a>
+        </li>
+        <li>
+          <a href={`mailto:${c.email}`} class="footer__contact-link">
+            <Icon name="mail" size={18} /><span class={ph(c.email)}>{c.email}</span>
+          </a>
+        </li>
+        <li class="footer__contact-link">
+          <Icon name="pin" size={18} /><span class={ph(site.serviceArea.primary)}>Serving {site.serviceArea.primary}</span>
+        </li>
+        {
+          c.hours.map((h) => (
+            <li class="footer__contact-link footer__hours">
+              <Icon name="clock" size={18} />
+              <span>
+                {h.days}: <span class={ph(h.time)}>{h.time}</span>
+              </span>
+            </li>
+          ))
+        }
+      </ul>
+      {
+        social.length > 0 && (
+          <ul role="list" class="footer__social">
+            {social.map(([k, url]) => (
+              <li>
+                <a href={url} rel="noopener" target="_blank">
+                  {socialLabel[k] ?? k}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )
+      }
+    </div>
+  </div>
+
+  <div class="wrap footer__base">
+    <div class="groove"></div>
+    <div class="footer__legal">
+      <p>© {year} {site.name}. <span class={ph(site.legalName)}>{site.legalName}</span>.</p>
+      <p>Some photography is representative stock imagery.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    position: relative;
+    padding-top: clamp(4rem, 3rem + 4vw, 6.5rem);
+    padding-bottom: var(--s-5);
+    font-size: 0.9375rem;
+  }
+  .footer__grid {
+    display: grid;
+    gap: var(--s-7) var(--s-6);
+    grid-template-columns: 1fr;
+  }
+  @media (min-width: 40rem) {
+    .footer__grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .footer__brand {
+      grid-column: 1 / -1;
+    }
+  }
+  @media (min-width: 64rem) {
+    .footer__grid {
+      grid-template-columns: minmax(0, 1.5fr) minmax(0, 0.8fr) minmax(0, 0.8fr) minmax(0, 1.2fr);
+    }
+    .footer__brand {
+      grid-column: auto;
+    }
+  }
+  .footer__logo {
+    display: inline-block;
+    color: var(--bone);
+    text-decoration: none;
+  }
+  .footer__statement {
+    margin-block: var(--s-5) var(--s-6);
+    max-width: 34ch;
+    color: var(--ash);
+    font-size: 1rem;
+    line-height: 1.55;
+  }
+  .footer__heading {
+    color: var(--ash);
+    margin-bottom: var(--s-4);
+  }
+  .footer__col ul {
+    display: grid;
+    gap: 0.55rem;
+  }
+  .footer__col a {
+    color: var(--mist);
+    text-decoration: none;
+  }
+  .footer__col a:hover {
+    color: var(--bone);
+    text-decoration: underline;
+    text-decoration-color: var(--bronze);
+  }
+  .footer__contact-link {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    color: var(--mist);
+    overflow-wrap: anywhere;
+  }
+  .footer__contact-link :global(svg) {
+    flex: none;
+    margin-top: 0.2rem;
+    color: var(--bronze);
+  }
+  .footer__hours {
+    font-size: 0.875rem;
+    color: var(--ash);
+  }
+  .footer__social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 1.25rem;
+    margin-top: var(--s-5);
+  }
+  .footer__base {
+    margin-top: clamp(3rem, 2rem + 3vw, 5rem);
+  }
+  .footer__legal {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-top: var(--s-5);
+    color: var(--ash);
+    font-size: 0.8125rem;
+  }
+  :global(body.has-action-bar) .site-footer {
+    padding-bottom: calc(var(--s-5) + 4.75rem);
+  }
+  @media (min-width: 48rem) {
+    :global(body.has-action-bar) .site-footer {
+      padding-bottom: var(--s-5);
+    }
+  }
+</style>
+
+<style>
+  .footer__col ul a:not(.footer__contact-link) {
+    display: inline-block;
+    transition: transform 0.3s var(--ease-out), color var(--t-fast);
+  }
+  .footer__col ul a:not(.footer__contact-link):hover {
+    transform: translateX(4px);
+  }
+</style>

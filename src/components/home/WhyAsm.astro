@@ -1,0 +1,147 @@
+---
+/** Why ASM — commitments, plus a credentials strip that stays visibly unconfirmed until filled in. */
+import { site } from '../../config/site';
+import Photo from '../Photo.astro';
+
+const pillars = [
+  {
+    title: 'One team for the whole entrance',
+    text: 'Garage doors, gates, automation and access, installed and serviced by the same people. One call, one point of contact, no finger-pointing between trades.',
+  },
+  {
+    title: 'Specified for the site',
+    text: 'Wind exposure, slope, headroom, coastal air and how you use the space all shape the right product. We assess before we recommend.',
+  },
+  {
+    title: 'Finished properly',
+    text: 'Square, level and quiet in operation. Safety systems tested, remotes paired, the site left tidy, and everything explained before we go.',
+  },
+];
+
+/** Replace with real credentials (licences, memberships, insurance), or delete. */
+const credentials = ['[Licence or accreditation]', '[Industry membership]', '[Public liability insurance]'];
+---
+
+<section class="why section on-bone" aria-labelledby="why-heading">
+  <div class="wrap why__grid">
+    <div class="why__head">
+      <h2 id="why-heading" class="why__heading"><span>Built properly.</span> <span>Explained clearly.</span> <span>Looked after.</span></h2>
+      <p class="lead why__lead">
+        {site.name} is a locally owned New Zealand business. The work is judged on how it looks on day one and how it runs years later.
+      </p>
+      <div class="why__photo frame" data-reveal>
+        <Photo image="sparks" sizes="(min-width: 64rem) 34vw, 100vw" />
+      </div>
+    </div>
+    <div class="why__body">
+      <ul role="list" class="why__pillars">
+        {
+          pillars.map((p) => (
+            <li class="why__pillar">
+              <h3 class="why__title">{p.title}</h3>
+              <p>{p.text}</p>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="why__creds">
+        <p class="label why__creds-label">Credentials</p>
+        <ul role="list">
+          {credentials.map((c) => <li class="placeholder-text">{c}</li>)}
+          {site.trust.filter((t) => t.placeholder).map((t) => <li class="placeholder-text">{t.label}</li>)}
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .why__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .why__heading {
+    font-size: clamp(2rem, 1.4rem + 1.9vw, 3.1rem);
+    font-stretch: 110%;
+  }
+  .why__heading span {
+    display: block;
+  }
+  .why__lead {
+    margin-top: var(--s-5);
+  }
+  .why__photo {
+    display: none;
+    margin-top: var(--s-7);
+    aspect-ratio: 4 / 3;
+  }
+  @media (min-width: 64rem) {
+    .why__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-9);
+    }
+    .why__photo {
+      display: block;
+    }
+  }
+  .why__pillars {
+    margin: 0;
+    border-top: 2px solid transparent;
+    border-image: var(--groove-light) 1;
+  }
+  .why__pillar {
+    display: grid;
+    gap: var(--s-3);
+    padding-block: var(--s-6);
+    border-bottom: 1px solid var(--line-strong);
+  }
+  @media (min-width: 48rem) {
+    .why__pillar {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      column-gap: var(--s-6);
+    }
+  }
+  .why__title {
+    font-size: var(--step-h3);
+    font-stretch: 116%;
+  }
+  .why__pillar p {
+    color: var(--ink-soft);
+  }
+  .why__creds {
+    margin-top: var(--s-7);
+  }
+  .why__creds-label {
+    color: var(--ink-soft);
+    margin-bottom: var(--s-4);
+  }
+  .why__creds ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .why__creds li {
+    padding: 0.55rem 0.85rem;
+    border: 1px solid var(--line-strong);
+    background: var(--limestone);
+    font-size: 0.875rem;
+    font-weight: 560;
+    color: var(--ink-soft);
+  }
+</style>
+
+<style>
+  .why__title {
+    transition: color 0.3s ease, transform 0.4s var(--ease-out);
+  }
+  .why__pillar:hover .why__title {
+    color: var(--bronze-ink);
+    transform: translateX(4px);
+  }
+  .why__photo :global(img) {
+    transition: transform 1.4s var(--ease-out);
+  }
+  .why__photo:hover :global(img) {
+    transform: scale(1.04);
+  }
+</style>

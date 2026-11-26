@@ -1,0 +1,76 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import Icon from '../components/Icon.astro';
+import { servicePages } from '../data/services';
+---
+
+<BaseLayout title="Page not found" description="The page you were looking for could not be found." noindex>
+  <section class="nf section on-dark">
+    <div class="wrap nf__inner">
+      <p class="nf__code tabular" aria-hidden="true">404</p>
+      <h1 class="nf__title">This door doesn’t open.</h1>
+      <p class="nf__lead">The page you were looking for has moved or no longer exists. Try one of these instead:</p>
+      <ul role="list" class="nf__links">
+        {
+          servicePages.map((p) => (
+            <li>
+              <a href={p.path}>
+                {p.name} <Icon name="arrow" size={20} />
+              </a>
+            </li>
+          ))
+        }
+        <li><a href="/projects/">Projects <Icon name="arrow" size={20} /></a></li>
+        <li><a href="/contact/">Contact &amp; quotes <Icon name="arrow" size={20} /></a></li>
+      </ul>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    min-height: 80vh;
+  }
+  .nf__code {
+    font-size: clamp(5rem, 3rem + 10vw, 11rem);
+    font-weight: 200;
+    font-stretch: 125%;
+    line-height: 0.85;
+    letter-spacing: -0.05em;
+    color: var(--steel);
+  }
+  .nf__title {
+    margin-top: var(--s-5);
+    font-size: var(--step-h1);
+    font-stretch: 125%;
+    font-weight: 800;
+  }
+  .nf__lead {
+    margin-top: var(--s-5);
+    color: var(--mist);
+    max-width: 48ch;
+  }
+  .nf__links {
+    display: grid;
+    margin-top: var(--s-7);
+    max-width: 40rem;
+    border-top: 1px solid var(--graphite);
+  }
+  .nf__links a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--graphite);
+    font-size: 1.25rem;
+    font-weight: 680;
+    font-stretch: 112%;
+    text-decoration: none;
+  }
+  .nf__links a:hover {
+    color: var(--bronze-glint);
+  }
+  .nf__links :global(svg) {
+    color: var(--bronze);
+  }
+</style>

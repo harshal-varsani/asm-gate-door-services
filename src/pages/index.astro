@@ -1,0 +1,39 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import HomeHero from '../components/home/HomeHero.astro';
+import ServiceIndex from '../components/home/ServiceIndex.astro';
+import SectorSplit from '../components/home/SectorSplit.astro';
+import DoorRail from '../components/home/DoorRail.astro';
+import GatesAutomation from '../components/home/GatesAutomation.astro';
+import RepairsBand from '../components/home/RepairsBand.astro';
+import FeaturedProjects from '../components/home/FeaturedProjects.astro';
+import WhyAsm from '../components/home/WhyAsm.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import ServiceAreaSection from '../components/home/ServiceAreaSection.astro';
+import Testimonials from '../components/home/Testimonials.astro';
+import Faq from '../components/Faq.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { site } from '../config/site';
+import { homeFaqs } from '../data/faqs';
+import { faqSchema } from '../lib/schema';
+
+const title = `${site.name} | Garage Doors, Gates & Automation`;
+const description =
+  'Garage doors, automatic gates, gate and garage door automation, repairs and servicing for homes and businesses. Request a quote from ASM Gate & Door Services.';
+---
+
+<BaseLayout title={title} rawTitle description={description} overlayHeader schema={[faqSchema(homeFaqs)]}>
+  <HomeHero />
+  <ServiceIndex />
+  <SectorSplit />
+  <DoorRail />
+  <GatesAutomation />
+  <RepairsBand />
+  <FeaturedProjects />
+  <WhyAsm />
+  <ProcessSteps />
+  <ServiceAreaSection />
+  <Testimonials />
+  <Faq faqs={homeFaqs} intro="Straight answers to the things people ask most. If yours isn’t here, just ask." />
+  <CtaBand />
+</BaseLayout>

@@ -1,0 +1,101 @@
+---
+/** Where we work — driven by site.serviceArea; links to published area pages. */
+import Icon from '../Icon.astro';
+import { site, isPlaceholder } from '../../config/site';
+import { publishedAreas } from '../../data/service-areas';
+
+const area = site.serviceArea;
+const areaLinks = new Map(publishedAreas.map((a) => [a.name, `/service-areas/${a.slug}/`]));
+---
+
+<section class="area section on-bone" aria-labelledby="area-heading">
+  <div class="wrap area__grid">
+    <div>
+      <h2 id="area-heading">Where we work</h2>
+      <p class="lead area__lead">
+        Homes and businesses across <span class:list={{ 'placeholder-text': isPlaceholder(area.primary) }}>{area.primary}</span>. {area.note}
+      </p>
+      <a href="/contact/" class="link-arrow area__cta">Check we cover your address <Icon name="arrow" size={16} /></a>
+    </div>
+    <ul role="list" class="area__list">
+      {
+        area.regions.map((r) => {
+          const href = areaLinks.get(r);
+          return (
+            <li class:list={{ 'placeholder-text': isPlaceholder(r) }}>
+              {href ? (
+                <a href={href}>
+                  {r} <Icon name="arrow" size={20} />
+                </a>
+              ) : (
+                <span>{r}</span>
+              )}
+            </li>
+          );
+        })
+      }
+    </ul>
+  </div>
+</section>
+
+<style>
+  .area__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  @media (min-width: 64rem) {
+    .area__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-9);
+    }
+  }
+  .area__lead {
+    margin-top: var(--s-5);
+  }
+  .area__cta {
+    margin-top: var(--s-6);
+  }
+  .area__list {
+    display: grid;
+    margin: 0;
+    border-top: 2px solid transparent;
+    border-image: var(--groove-light) 1;
+  }
+  @media (min-width: 40rem) {
+    .area__list {
+      grid-template-columns: 1fr 1fr;
+      column-gap: var(--s-6);
+    }
+  }
+  .area__list li {
+    border-bottom: 1px solid var(--line-strong);
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 2rem);
+    font-weight: 720;
+    font-stretch: 120%;
+    letter-spacing: -0.025em;
+    line-height: 1.1;
+  }
+  .area__list li > * {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.1rem 0;
+  }
+  .area__list a {
+    text-decoration: none;
+  }
+  .area__list a :global(svg) {
+    color: var(--bronze-ink);
+  }
+  /* Until real areas are entered, keep placeholders at body size so they don't dominate. */
+  .area__list li.placeholder-text {
+    color: var(--ink-soft);
+    font-size: 1.0625rem;
+    font-weight: 560;
+    font-stretch: 100%;
+    letter-spacing: 0;
+  }
+  .area__list li.placeholder-text > * {
+    padding: 0.85rem 0;
+  }
+</style>

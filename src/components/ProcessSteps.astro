@@ -1,0 +1,161 @@
+---
+/** How a job runs, start to finish. Numbers carry meaning here: it is a sequence. */
+interface Props {
+  heading?: string;
+  intro?: string;
+  tone?: 'light' | 'dark';
+}
+const {
+  heading = 'From first call to final handover',
+  intro = 'A straightforward process, whether it’s one garage door or a full commercial site.',
+  tone = 'dark',
+} = Astro.props;
+
+const steps = [
+  {
+    title: 'Tell us about the job',
+    text: 'Call, or send the quote form with a few photos. We’ll come back to you to talk through what you need.',
+  },
+  {
+    title: 'Site visit & measure',
+    text: 'We look at the opening, structure, power and access, and talk through options that suit the property and the budget.',
+  },
+  {
+    title: 'Clear written quote',
+    text: 'The door or gate, the finish, the automation and what’s included, set out plainly so you can compare and decide.',
+  },
+  {
+    title: 'Install & handover',
+    text: 'Installed, adjusted and tested. Remotes paired, safety systems checked, and everything explained before we leave.',
+  },
+];
+---
+
+<section class:list={['process section', tone === 'dark' ? 'on-dark' : 'on-light']} aria-labelledby="process-heading">
+  <div class="wrap">
+    <div class="section-head section-head--split">
+      <h2 id="process-heading">{heading}</h2>
+      <p class="lead">{intro}</p>
+    </div>
+    <ol role="list" class="process__list">
+      {
+        steps.map((s, i) => (
+          <li class="process__step">
+            <span class="process__num tabular" aria-hidden="true">
+              {String(i + 1).padStart(2, '0')}
+            </span>
+            <h3 class="process__title">
+              <span class="visually-hidden">Step {i + 1}: </span>
+              {s.title}
+            </h3>
+            <p class="process__text">{s.text}</p>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="process__after">
+      After handover: repairs, servicing and safety checks whenever you need them. <a href="/repairs-maintenance/">See repairs &amp; maintenance</a>.
+    </p>
+  </div>
+</section>
+
+<style>
+  .process__list {
+    display: grid;
+    gap: 0;
+    margin: 0;
+    border-top: 2px solid transparent;
+    border-image: var(--groove-dark) 1;
+  }
+  .on-light .process__list {
+    border-image: var(--groove-light) 1;
+  }
+  .process__step {
+    display: grid;
+    grid-template-columns: 4.5rem minmax(0, 1fr);
+    gap: 0.4rem 1rem;
+    padding-block: var(--s-6);
+    border-bottom: 1px solid var(--line);
+  }
+  .process__num {
+    grid-row: span 2;
+    font-size: 2.5rem;
+    font-weight: 300;
+    font-stretch: 118%;
+    line-height: 1;
+    color: var(--fg-soft);
+    letter-spacing: -0.04em;
+  }
+  .process__title {
+    font-size: var(--step-h4);
+    font-weight: 700;
+    font-stretch: 112%;
+    letter-spacing: -0.01em;
+  }
+  .process__text {
+    color: var(--fg-soft);
+    max-width: 44ch;
+  }
+  .process__after {
+    margin-top: var(--s-6);
+    color: var(--fg-soft);
+  }
+  .process__after a {
+    color: var(--fg);
+    text-decoration-color: var(--bronze);
+  }
+  @media (min-width: 56rem) {
+    .process__list {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      border-bottom: 1px solid var(--line);
+    }
+    .process__step {
+      grid-template-columns: 1fr;
+      align-content: start;
+      gap: var(--s-4);
+      padding: var(--s-6) var(--s-5) var(--s-7) 0;
+      border-bottom: 0;
+      border-right: 1px solid var(--line);
+    }
+    .process__step + .process__step {
+      padding-left: var(--s-5);
+    }
+    .process__step:last-child {
+      border-right: 0;
+    }
+    .process__num {
+      grid-row: auto;
+      font-size: clamp(3rem, 2rem + 2vw, 4.5rem);
+      margin-bottom: var(--s-4);
+    }
+  }
+</style>
+
+<style>
+  /* Hover: a bronze rule draws across the top of the step and its number warms to bronze. */
+  .process__step {
+    position: relative;
+  }
+  .process__step::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -1px;
+    height: 2px;
+    background: var(--bronze);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .process__num,
+  .process__title {
+    transition: color 0.35s ease;
+  }
+  .process__step:hover::before {
+    transform: scaleX(1);
+  }
+  .process__step:hover .process__num {
+    color: var(--bronze);
+  }
+</style>

@@ -1,0 +1,244 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PageHero from '../components/PageHero.astro';
+import Photo from '../components/Photo.astro';
+import ProcessSteps from '../components/ProcessSteps.astro';
+import CtaBand from '../components/CtaBand.astro';
+import Logo from '../components/Logo.astro';
+import { site } from '../config/site';
+import { breadcrumbSchema } from '../lib/schema';
+
+/**
+ * ABOUT PAGE CONTENT
+ * Replace the [bracketed] placeholders with ASM's real story, team and credentials.
+ * Nothing here should be invented: leave a placeholder until the fact is confirmed.
+ */
+const story = [
+  '[Tell ASM’s story: when and where the business started, who founded it, and what led them into garage doors and gates.]',
+  '[Describe what ASM specialises in today, the kinds of homes and businesses you work with, and the projects you are proudest of.]',
+];
+
+const values = [
+  { title: 'Precision', text: 'Doors and gates are measured, set out and adjusted until they run square, level and quietly. Small tolerances make the difference you notice every day.' },
+  { title: 'Reliability', text: 'Turning up when we say we will, doing what the quote says, and building things that keep working long after handover.' },
+  { title: 'Straight advice', text: 'Recommending what the site and the budget actually need, including when a repair makes more sense than a replacement.' },
+  { title: 'Care', text: 'Treating every home and site with respect: protecting floors and finishes, working safely, and leaving it tidy.' },
+];
+
+const team = [
+  { name: '[Name]', role: '[Role, e.g. Founder & lead installer]' },
+  { name: '[Name]', role: '[Role]' },
+  { name: '[Name]', role: '[Role]' },
+];
+
+const credentials = ['[Licence or accreditation]', '[Industry membership]', '[Insurance cover]', '[Health & safety certification]'];
+const base = Astro.site ?? Astro.url;
+---
+
+<BaseLayout
+  title="About Us"
+  description={`About ${site.name}: a locally owned New Zealand business specialising in garage doors, gates, automation and repairs.`}
+  ogImage="sparks"
+  overlayHeader
+  schema={[breadcrumbSchema(base, [{ name: 'Home', path: '/' }, { name: 'About', path: '/about/' }])]}
+>
+  <PageHero
+    heading="About ASM"
+    intro={`${site.name} is a locally owned New Zealand business specialising in garage doors, gates and the automation that runs them.`}
+    image="sparks"
+    crumbs={[{ name: 'About', path: '/about/' }]}
+    compact
+  />
+
+  <section class="story section on-light" aria-labelledby="story-heading">
+    <div class="wrap story__grid">
+      <h2 id="story-heading">Our story</h2>
+      <div class="story__body">
+        <p class="story__statement">
+          We build and look after the entrances people use every day: the garage door you open each morning, the gate that keeps the kids and the dog in, the roller door a business depends on.
+        </p>
+        <div class="prose story__prose">
+          {story.map((p) => <p class="placeholder-text">{p}</p>)}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="values section on-dark" aria-labelledby="values-heading">
+    <div class="wrap">
+      <div class="section-head section-head--split">
+        <h2 id="values-heading">How we work</h2>
+        <p class="lead">The standards behind every job, from a single remote to a full commercial site.</p>
+      </div>
+      <dl class="values__list">
+        {
+          values.map((v) => (
+            <div class="values__item">
+              <dt class="values__title">{v.title}</dt>
+              <dd>{v.text}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </div>
+  </section>
+
+  <section class="team section on-bone" aria-labelledby="team-heading">
+    <div class="wrap">
+      <div class="section-head section-head--split">
+        <h2 id="team-heading">The team</h2>
+        <p class="lead">The people you’ll meet on site. <span class="placeholder-text">[Add team photos and short bios.]</span></p>
+      </div>
+      <ul role="list" class="team__grid">
+        {
+          team.map((m) => (
+            <li class="team__card">
+              <div class="team__photo" role="img" aria-label="Team photo placeholder">
+                <Logo compact />
+              </div>
+              <p class="team__name placeholder-text">{m.name}</p>
+              <p class="team__role placeholder-text">{m.role}</p>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="creds section--tight on-light" aria-labelledby="creds-heading">
+    <div class="wrap creds__grid">
+      <h2 id="creds-heading" class="h3">Credentials &amp; cover</h2>
+      <ul role="list" class="creds__list">
+        {credentials.map((c) => <li class="placeholder-text">{c}</li>)}
+      </ul>
+    </div>
+  </section>
+
+  <section class="band on-dark" aria-hidden="true">
+    <div class="band__img frame" data-reveal>
+      <Photo image="toolsWall" sizes="100vw" alt="" />
+    </div>
+  </section>
+
+  <ProcessSteps tone="light" />
+  <CtaBand heading="Let’s talk about your project." image="duskHome" />
+</BaseLayout>
+
+<style>
+  .story__grid {
+    display: grid;
+    gap: var(--s-6);
+  }
+  @media (min-width: 64rem) {
+    .story__grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      column-gap: var(--s-8);
+    }
+  }
+  .story__statement {
+    font-size: clamp(1.375rem, 1.1rem + 1.1vw, 2rem);
+    font-weight: 600;
+    font-stretch: 108%;
+    letter-spacing: -0.015em;
+    line-height: 1.3;
+    max-width: 34ch;
+    text-wrap: pretty;
+  }
+  .story__prose {
+    margin-top: var(--s-6);
+  }
+
+  .values__list {
+    display: grid;
+    margin: 0;
+    border-top: 2px solid transparent;
+    border-image: var(--groove-dark) 1;
+  }
+  @media (min-width: 48rem) {
+    .values__list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: var(--s-7);
+    }
+  }
+  .values__item {
+    display: grid;
+    gap: var(--s-3);
+    padding-block: var(--s-6);
+    border-bottom: 1px solid var(--graphite);
+  }
+  .values__title {
+    font-size: var(--step-h3);
+    font-weight: 740;
+    font-stretch: 118%;
+    letter-spacing: -0.02em;
+  }
+  .values__item dd {
+    margin: 0;
+    color: var(--ash);
+    max-width: 46ch;
+  }
+
+  .team__grid {
+    display: grid;
+    gap: var(--s-6) var(--s-5);
+    margin: 0;
+  }
+  @media (min-width: 40rem) {
+    .team__grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .team__photo {
+    display: grid;
+    place-items: center;
+    aspect-ratio: 1 / 1;
+    margin-bottom: var(--s-4);
+    background:
+      repeating-linear-gradient(to bottom, transparent 0 calc(20% - 2px), rgb(0 0 0 / 0.08) calc(20% - 2px) 20%),
+      var(--concrete);
+    color: var(--pumice);
+  }
+  .team__photo :global(.logo) {
+    color: color-mix(in srgb, var(--ink) 35%, var(--concrete));
+  }
+  .team__name {
+    font-weight: 700;
+    font-stretch: 112%;
+    font-size: 1.125rem;
+  }
+  .team__role {
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+
+  .creds__grid {
+    display: grid;
+    gap: var(--s-5);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .creds__grid {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      column-gap: var(--s-8);
+    }
+  }
+  .creds__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .creds__list li {
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--line-strong);
+    background: var(--bone);
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    font-weight: 560;
+  }
+  .band__img {
+    height: clamp(16rem, 38vw, 30rem);
+  }
+  .band__img :global(img) {
+    filter: grayscale(1) brightness(0.75);
+  }
+</style>

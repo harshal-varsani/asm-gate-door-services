@@ -1,0 +1,66 @@
+---
+/** Renders only when genuine testimonials exist in src/data/testimonials.ts. */
+import { testimonials } from '../../data/testimonials';
+---
+
+{
+  testimonials.length > 0 && (
+    <section class="tm section on-dark" aria-labelledby="tm-heading">
+      <div class="wrap">
+        <h2 id="tm-heading" class="tm__heading">
+          What customers say
+        </h2>
+        <ul role="list" class="tm__list">
+          {testimonials.map((t) => (
+            <li>
+              <figure class="tm__item">
+                <blockquote>
+                  <p>“{t.quote}”</p>
+                </blockquote>
+                <figcaption>
+                  <span class="tm__name">{t.name}</span>
+                  {(t.location || t.source) && <span class="tm__src">{[t.location, t.source].filter(Boolean).join(' · ')}</span>}
+                </figcaption>
+              </figure>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  .tm__heading {
+    margin-bottom: var(--s-7);
+  }
+  .tm__list {
+    display: grid;
+    gap: var(--s-6);
+    margin: 0;
+  }
+  @media (min-width: 56rem) {
+    .tm__list {
+      grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+    }
+  }
+  .tm__item {
+    display: grid;
+    gap: var(--s-5);
+    padding-top: var(--s-5);
+    border-top: 2px solid var(--bronze);
+  }
+  .tm__item blockquote {
+    margin: 0;
+    font-size: var(--step-lead);
+    line-height: 1.5;
+  }
+  .tm__name {
+    display: block;
+    font-weight: 680;
+  }
+  .tm__src {
+    color: var(--ash);
+    font-size: 0.875rem;
+  }
+</style>

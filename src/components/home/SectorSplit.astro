@@ -1,0 +1,141 @@
+---
+/** Residential and commercial: two full-height photographic panels. */
+import Photo from '../Photo.astro';
+import Icon from '../Icon.astro';
+
+const sectors = [
+  {
+    id: 'residential',
+    heading: 'For homes',
+    text: 'New builds, renovations and upgrades: the door and gate that suit the architecture, automated the way you live.',
+    items: ['New and replacement garage doors', 'Driveway and pedestrian gates', 'Openers, remotes and smart access', 'Repairs and servicing'],
+    image: 'duskHome' as const,
+    href: '/contact/?property=residential#quote',
+    cta: 'Residential enquiry',
+  },
+  {
+    id: 'commercial',
+    heading: 'For business',
+    text: 'Doors and gates that cope with daily traffic, vehicles and the weather, with access control and servicing to keep sites running.',
+    items: ['Roller and sectional doors', 'Security and yard gates', 'Car-park and multi-unit access', 'Scheduled servicing and safety checks'],
+    image: 'loadingDocks' as const,
+    href: '/contact/?property=commercial#quote',
+    cta: 'Commercial enquiry',
+  },
+];
+---
+
+<section class="sectors on-dark" aria-label="Residential and commercial">
+  {
+    sectors.map((s) => (
+      <article class="sector" aria-labelledby={`sector-${s.id}`}>
+        <div class="sector__media frame">
+          <Photo image={s.image} sizes="(min-width: 56rem) 50vw, 100vw" />
+        </div>
+        <div class="sector__body">
+          <h2 id={`sector-${s.id}`} class="sector__heading">
+            {s.heading}
+          </h2>
+          <p class="sector__text">{s.text}</p>
+          <ul role="list" class="sector__items">
+            {s.items.map((it) => (
+              <li>{it}</li>
+            ))}
+          </ul>
+          <a href={s.href} class="link-arrow sector__cta">
+            {s.cta} <Icon name="arrow" size={16} />
+          </a>
+        </div>
+      </article>
+    ))
+  }
+</section>
+
+<style>
+  .sectors {
+    display: grid;
+  }
+  @media (min-width: 56rem) {
+    .sectors {
+      grid-template-columns: 1fr 1fr;
+    }
+    .sector + .sector {
+      border-left: 2px solid #050506;
+      box-shadow: inset 1px 0 0 #2e2f33;
+    }
+  }
+  .sector {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    align-items: flex-end;
+    min-height: clamp(30rem, 72vh, 46rem);
+    overflow: hidden;
+  }
+  .sector + .sector {
+    border-top: 2px solid #050506;
+  }
+  @media (min-width: 56rem) {
+    .sector + .sector {
+      border-top: 0;
+    }
+  }
+  .sector__media {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+  }
+  .sector__media :global(img) {
+    transition: transform 1.6s var(--ease-out);
+  }
+  .sector:hover .sector__media :global(img) {
+    transform: scale(1.035);
+  }
+  .sector__media::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgb(20 21 23 / 0.95) 10%, rgb(20 21 23 / 0.62) 50%, rgb(20 21 23 / 0.2));
+  }
+  .sector__media :global(.stock-tag) {
+    top: 0.75rem;
+    bottom: auto;
+    z-index: 2;
+  }
+  .sector__body {
+    width: 100%;
+    padding: var(--s-7) var(--gutter) var(--s-7);
+  }
+  @media (min-width: 56rem) {
+    .sector__body {
+      padding: var(--s-8) clamp(2rem, 4vw, 4.5rem);
+    }
+  }
+  .sector__heading {
+    font-size: var(--step-h1);
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: -0.035em;
+  }
+  .sector__text {
+    margin-top: var(--s-4);
+    max-width: 40ch;
+    color: var(--mist);
+  }
+  .sector__items {
+    display: grid;
+    gap: 0;
+    margin-top: var(--s-5);
+    max-width: 30rem;
+    border-top: 1px solid rgb(255 255 255 / 0.14);
+  }
+  .sector__items li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid rgb(255 255 255 / 0.14);
+    font-size: 0.9375rem;
+    color: var(--bone);
+  }
+  .sector__cta {
+    margin-top: var(--s-6);
+  }
+</style>

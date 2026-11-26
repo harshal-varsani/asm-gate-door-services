@@ -1,0 +1,206 @@
+---
+/** Gates and automation, side by side: a big gate photograph, the gate range, then the controls. */
+import Photo from '../Photo.astro';
+import Icon from '../Icon.astro';
+import { gates, automation } from '../../data/services';
+
+const controls = ['openers', 'remotes', 'intercom', 'smart-access']
+  .map((id) => automation.categories.find((c) => c.id === id)!)
+  .filter(Boolean);
+---
+
+<section class="ga section on-dark" aria-labelledby="ga-heading">
+  <div class="wrap">
+    <div class="ga__top">
+      <div class="ga__photo frame" data-reveal>
+        <Photo image="gatePedestrian" sizes="(min-width: 64rem) 58vw, 100vw" />
+      </div>
+      <div class="ga__copy">
+        <h2 id="ga-heading">Gates that open the way you live.</h2>
+        <p class="ga__text">
+          Sliding gates for slopes and tight frontages, swing gates for wide level driveways, and custom designs in steel, aluminium or timber. Automated, secured and matched to the house.
+        </p>
+        <ul role="list" class="ga__types">
+          {
+            gates.categories.map((c) => (
+              <li>
+                <a href={`${gates.path}#${c.id}`}>{c.short}</a>
+              </li>
+            ))
+          }
+        </ul>
+        <a href={gates.path} class="link-arrow">Explore gates <Icon name="arrow" size={16} /></a>
+      </div>
+    </div>
+
+    <div class="ga__auto">
+      <div class="ga__auto-head">
+        <h3 class="ga__auto-title">Automation &amp; access</h3>
+        <p>Motors, controls and safety systems for new and existing doors and gates.</p>
+        <a href={automation.path} class="link-arrow">All automation <Icon name="arrow" size={16} /></a>
+      </div>
+      <ul role="list" class="ga__auto-list">
+        {
+          controls.map((c) => (
+            <li>
+              <a href={`${automation.path}#${c.id}`} class="ga__ctrl">
+                <span class="ga__ctrl-img frame">
+                  <Photo image={c.image} sizes="(min-width: 64rem) 10vw, 30vw" widths={[320, 480, 720]} />
+                </span>
+                <span class="ga__ctrl-body">
+                  <span class="ga__ctrl-name">{c.short}</span>
+                  <span class="ga__ctrl-sum">{c.summary}</span>
+                </span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </div>
+</section>
+
+<style>
+  .ga__top {
+    display: grid;
+    gap: var(--s-7);
+  }
+  .ga__photo {
+    aspect-ratio: 4 / 3;
+  }
+  .ga__text {
+    margin-top: var(--s-5);
+    color: var(--ash);
+    font-size: var(--step-lead);
+    line-height: 1.5;
+    max-width: 40ch;
+  }
+  .ga__types {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-block: var(--s-6);
+  }
+  .ga__types a {
+    display: inline-block;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid var(--steel);
+    border-radius: var(--radius);
+    color: var(--mist);
+    font-size: 0.875rem;
+    font-weight: 580;
+    text-decoration: none;
+    transition: border-color var(--t-fast), color var(--t-fast);
+  }
+  .ga__types a:hover {
+    border-color: var(--bronze);
+    color: var(--bone);
+  }
+  @media (min-width: 64rem) {
+    .ga__top {
+      grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+      column-gap: var(--s-8);
+      align-items: center;
+    }
+    .ga__photo {
+      aspect-ratio: 5 / 4;
+    }
+  }
+
+  .ga__auto {
+    display: grid;
+    gap: var(--s-6);
+    margin-top: var(--section);
+    padding-top: var(--s-7);
+    border-top: 2px solid transparent;
+    border-image: var(--groove-dark) 1;
+  }
+  .ga__auto-head p {
+    margin-block: var(--s-3) var(--s-5);
+    color: var(--ash);
+    max-width: 34ch;
+  }
+  .ga__auto-title {
+    font-size: var(--step-h3);
+  }
+  /* A ruled list, not boxed cards. */
+  .ga__auto-list {
+    display: grid;
+    column-gap: var(--s-6);
+    margin: 0;
+  }
+  .ga__auto-list li {
+    border-top: 1px solid var(--graphite);
+  }
+  .ga__auto-list li:last-child {
+    border-bottom: 1px solid var(--graphite);
+  }
+  @media (min-width: 40rem) {
+    .ga__auto-list {
+      grid-template-columns: 1fr 1fr;
+    }
+    .ga__auto-list li:nth-last-child(2) {
+      border-bottom: 1px solid var(--graphite);
+    }
+  }
+  @media (min-width: 64rem) {
+    .ga__auto {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
+      column-gap: var(--s-8);
+    }
+  }
+  .ga__ctrl {
+    display: grid;
+    grid-template-columns: 6.5rem minmax(0, 1fr);
+    gap: var(--s-4);
+    align-items: center;
+    height: 100%;
+    padding: var(--s-4) 0;
+    color: var(--bone);
+    text-decoration: none;
+  }
+  .ga__ctrl-img {
+    aspect-ratio: 1;
+  }
+  .ga__ctrl-body {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .ga__ctrl-name {
+    font-weight: 700;
+    font-stretch: 112%;
+    font-size: 1.0625rem;
+  }
+  .ga__ctrl:hover .ga__ctrl-name {
+    color: var(--bronze-glint);
+  }
+  .ga__ctrl-sum {
+    color: var(--ash);
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+</style>
+
+<style>
+  .ga__ctrl-img :global(img) {
+    transition: transform 0.8s var(--ease-out);
+  }
+  .ga__ctrl:hover .ga__ctrl-img :global(img) {
+    transform: scale(1.08);
+  }
+  .ga__photo :global(img) {
+    transition: transform 1.4s var(--ease-out);
+  }
+  .ga__top:hover .ga__photo :global(img) {
+    transform: scale(1.03);
+  }
+  .ga__types a {
+    transition: border-color var(--t-fast), color var(--t-fast), background-color var(--t-fast), transform 0.3s var(--ease-out);
+  }
+  .ga__types a:hover {
+    background: var(--bronze);
+    border-color: var(--bronze);
+    color: var(--ironsand);
+    transform: translateY(-2px);
+  }
+</style>

@@ -1,0 +1,60 @@
+---
+/**
+ * PLACEHOLDER LOGO — a wordmark and a "lifting door" panel mark built for
+ * this site until ASM supplies its own logo. To use a supplied logo, replace
+ * the <svg> below with an <img> of the logo file (SVG preferred).
+ */
+interface Props {
+  class?: string;
+  compact?: boolean;
+}
+const { class: className, compact = false } = Astro.props;
+---
+
+<span class:list={['logo', className, { 'logo--compact': compact }]}>
+  <svg class="logo__mark" viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+    <!-- opening: jambs and head -->
+    <path d="M2.5 31V2.5h27V31" fill="none" stroke="currentColor" stroke-width="3"></path>
+    <!-- door panels, part-raised -->
+    <rect x="7" y="7" width="18" height="4.2" fill="currentColor"></rect>
+    <rect x="7" y="12.4" width="18" height="4.2" fill="currentColor"></rect>
+    <rect x="7" y="17.8" width="18" height="4.2" fill="var(--bronze)"></rect>
+  </svg>
+  <span class="logo__type">
+    <span class="logo__name">ASM</span>
+    {!compact && <span class="logo__sub">Gate &amp; Door Services</span>}
+  </span>
+</span>
+
+<style>
+  .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.7rem;
+    color: inherit;
+    line-height: 1;
+  }
+  .logo__mark {
+    width: 2rem;
+    height: 2rem;
+    flex: none;
+  }
+  .logo__type {
+    display: grid;
+    gap: 0.28rem;
+  }
+  .logo__name {
+    font-size: 1.45rem;
+    font-weight: 850;
+    font-stretch: 125%;
+    letter-spacing: 0.02em;
+  }
+  .logo__sub {
+    font-size: 0.625rem;
+    font-weight: 620;
+    font-stretch: 112%;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.78;
+  }
+</style>

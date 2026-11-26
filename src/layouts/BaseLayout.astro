@@ -1,0 +1,116 @@
+---
+import '../styles/global.css';
+import fontLatin from '@fontsource-variable/archivo/files/archivo-latin-wdth-normal.woff2?url';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import MobileActionBar from '../components/MobileActionBar.astro';
+import { site } from '../config/site';
+import { businessSchema, websiteSchema, ogImageUrl } from '../lib/schema';
+import { images } from '../data/images';
+
+interface Props {
+  /** Page title without the brand suffix. */
+  title: string;
+  description: string;
+  /** Image registry key used for the social share image. */
+  ogImage?: keyof typeof images;
+  /** Header sits transparently over a full-bleed hero. */
+  overlayHeader?: boolean;
+  noindex?: boolean;
+  /** Extra JSON-LD objects for this page. */
+  schema?: (Record<string, unknown> | null)[];
+  /** Hide the mobile call/quote bar (e.g. on the contact page). */
+  hideActionBar?: boolean;
+  /** Use the title exactly as given (home page). */
+  rawTitle?: boolean;
+}
+
+const {
+  title,
+  description,
+  ogImage = 'heroGates',
+  overlayHeader = false,
+  noindex = false,
+  schema = [],
+  hideActionBar = false,
+  rawTitle = false,
+} = Astro.props;
+
+const base = Astro.site ?? Astro.url;
+const fullTitle = rawTitle ? title : `${title} | ${site.name}`;
+const canonical = new URL(Astro.url.pathname, base).toString();
+const ogSrc = images[ogImage].src;
+const ogUrl = typeof ogSrc === 'string' ? ogImageUrl(ogSrc) : new URL(ogSrc.src, base).toString();
+const robots = !site.indexing || noindex ? 'noindex, nofollow' : 'index, follow, max-image-preview:large';
+
+const jsonLd = [businessSchema(base), websiteSchema(base), ...schema].filter(Boolean);
+---
+
+<!doctype html>
+<html lang="en-NZ">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <script is:inline>document.documentElement.classList.add('js');</script>
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <meta name="robots" content={robots} />
+    <meta name="theme-color" content="#141517" />
+    <meta name="format-detection" content="telephone=no" />
+
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+
+    <link rel="preload" href={fontLatin} as="font" type="font/woff2" crossorigin />
+    <link rel="preconnect" href="https://images.unsplash.com" crossorigin />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content={site.name} />
+    <meta property="og:locale" content="en_NZ" />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content={images[ogImage].alt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogUrl} />
+
+    {jsonLd.map((d) => <script type="application/ld+json" is:inline set:html={JSON.stringify(d)} />)}
+  </head>
+  <body class:list={{ 'has-action-bar': !hideActionBar }}>
+    <a class="skip-link" href="#main">Skip to content</a>
+    <Header overlay={overlayHeader} />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <Footer />
+    {!hideActionBar && <MobileActionBar />}
+
+    <script>
+      // Reveal photo frames as they enter the viewport (door-like wipe).
+      const els = document.querySelectorAll<HTMLElement>('[data-reveal]');
+      if ('IntersectionObserver' in window && els.length) {
+        const io = new IntersectionObserver(
+          (entries) => {
+            for (const e of entries) {
+              if (e.isIntersecting) {
+                e.target.classList.add('is-revealed');
+                io.unobserve(e.target);
+              }
+            }
+          },
+          { rootMargin: '0px 0px -8% 0px', threshold: 0.12 },
+        );
+        els.forEach((el) => io.observe(el));
+      } else {
+        els.forEach((el) => el.classList.add('is-revealed'));
+      }
+    </script>
+  </body>
+</html>

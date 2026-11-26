@@ -1,0 +1,172 @@
+---
+import ServicePageView from '../components/ServicePageView.astro';
+import Icon from '../components/Icon.astro';
+import { automation } from '../data/services';
+
+const waysIn = [
+  { label: 'Remote', icon: 'remote', href: '#remotes' },
+  { label: 'Wall console', icon: 'console', href: '#openers' },
+  { label: 'Keypad', icon: 'keypad', href: '#keypads' },
+  { label: 'Intercom', icon: 'intercom', href: '#intercom' },
+  { label: 'Phone app', icon: 'mobile', href: '#smart-access' },
+  { label: 'Fob or card', icon: 'card', href: '#access-control' },
+] as const;
+---
+
+<ServicePageView
+  page={automation}
+  ctaImage="duskHome"
+  ctaHeading="Upgrade what you have."
+  ctaText="Most sound doors and gates can be automated. Send a photo of the door or gate (and the motor label, if there is one) and we’ll tell you what’s possible."
+>
+  <section slot="after-intro" class="ways section--tight on-bone" aria-labelledby="ways-heading">
+    <div class="wrap ways__grid">
+      <div>
+        <h2 id="ways-heading" class="h3">Every way in, set up to work together.</h2>
+        <p class="ways__text">
+          Choose how you and your visitors open the door or gate. We match controls to a compatible motor, pair everything on site and test the safety systems before handover.
+        </p>
+      </div>
+      <ul role="list" class="ways__list">
+        {
+          waysIn.map((w) => (
+            <li>
+              <a href={w.href} class="ways__item">
+                <Icon name={w.icon} size={30} class="ways__icon" />
+                <span>{w.label}</span>
+                <Icon name="arrow" size={16} class="ways__go" />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section slot="after-catalogue" class="brands section--tight on-dark" aria-labelledby="brands-heading">
+    <div class="wrap brands__grid">
+      <h2 id="brands-heading" class="h3">Brands &amp; compatibility</h2>
+      <div>
+        <p class="placeholder-text brands__text">
+          [List the opener, gate motor, intercom and access-control brands ASM supplies and services. Until confirmed, no brand names are shown.]
+        </p>
+        <a href="/contact/?service=automation#quote" class="link-arrow brands__cta">
+          Ask about your existing motor <Icon name="arrow" size={16} />
+        </a>
+      </div>
+    </div>
+  </section>
+</ServicePageView>
+
+<style>
+  .ways {
+    padding-block: clamp(3rem, 2rem + 3vw, 5rem);
+    border-bottom: 1px solid var(--line);
+  }
+  .ways__grid {
+    display: grid;
+    gap: var(--s-6);
+    align-items: center;
+  }
+  @media (min-width: 64rem) {
+    .ways__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-8);
+    }
+  }
+  .ways__text {
+    margin-top: var(--s-4);
+    color: var(--ink-soft);
+    max-width: 48ch;
+  }
+  .ways__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1px;
+    margin: 0;
+    background: var(--line-strong);
+    border: 1px solid var(--line-strong);
+  }
+  @media (min-width: 40rem) {
+    .ways__list {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .ways__item {
+    position: relative;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 0.85rem;
+    height: 100%;
+    padding: 1.25rem 1.1rem;
+    background: var(--bone);
+    color: var(--ink);
+    font-weight: 680;
+    font-stretch: 112%;
+    font-size: 1.0625rem;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    overflow: hidden;
+    isolation: isolate;
+    transition: color 0.3s ease;
+  }
+  /* Hover: an ironsand panel rises like a door, the icon turns bronze. */
+  .ways__item::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--ironsand);
+    transform: translateY(101%);
+    transition: transform 0.5s var(--ease-door);
+  }
+  .ways__item :global(.ways__icon) {
+    color: var(--ink-soft);
+    transition: color 0.3s ease, transform 0.5s var(--ease-out);
+  }
+  .ways__item :global(.ways__go) {
+    color: var(--bronze-hi);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.3s ease, transform 0.4s var(--ease-out);
+  }
+  .ways__item:hover,
+  .ways__item:focus-visible {
+    color: var(--bone);
+  }
+  .ways__item:hover::before,
+  .ways__item:focus-visible::before {
+    transform: translateY(0);
+  }
+  .ways__item:hover :global(.ways__icon),
+  .ways__item:focus-visible :global(.ways__icon) {
+    color: var(--bronze-hi);
+    transform: translateY(-2px);
+  }
+  .ways__item:hover :global(.ways__go),
+  .ways__item:focus-visible :global(.ways__go) {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .brands {
+    padding-block: clamp(3rem, 2rem + 3vw, 5rem);
+  }
+  .brands__grid {
+    display: grid;
+    gap: var(--s-5);
+  }
+  @media (min-width: 64rem) {
+    .brands__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-8);
+    }
+  }
+  .brands__text {
+    color: var(--ash);
+    max-width: 56ch;
+  }
+  .brands__cta {
+    margin-top: var(--s-5);
+  }
+</style>

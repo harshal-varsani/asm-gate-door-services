@@ -1,0 +1,119 @@
+---
+import ServicePageView from '../components/ServicePageView.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import Icon from '../components/Icon.astro';
+import { repairs } from '../data/services';
+import { site } from '../config/site';
+
+const checks = [
+  'What it’s doing (or not doing), and since when',
+  'Make and model of the door, gate or motor, if you know it',
+  'Any error lights, beeps or unusual noises',
+  'A photo of the door or gate, and the motor label',
+];
+---
+
+<ServicePageView
+  page={repairs}
+  ctaImage="sparks"
+  ctaHeading="Keep it running."
+  ctaText="Book a service before small problems become breakdowns, or call us if something has already stopped working."
+>
+  <section slot="after-catalogue" id="report" class="report section on-dark" aria-labelledby="report-heading">
+    <div class="wrap report__grid">
+      <div class="report__intro">
+        <h2 id="report-heading">Report a fault</h2>
+        <p class="report__lead">
+          The more we know before we arrive, the more likely we can fix it in one visit with the right parts on board. If you can, include:
+        </p>
+        <ul role="list" class="report__checks">
+          {
+            checks.map((c) => (
+              <li>
+                <Icon name="check" size={18} />
+                {c}
+              </li>
+            ))
+          }
+        </ul>
+        <div class="report__safety">
+          <Icon name="alert" size={22} />
+          <p>
+            <strong>Safety first.</strong> If a spring or cable has snapped, or a gate has come off its track, don’t lift, push or run it. Keep people and pets clear and call
+            <a href={site.contact.phoneHref}>{site.contact.phoneDisplay}</a>.
+          </p>
+        </div>
+      </div>
+      <div class="report__form on-light">
+        <QuoteForm id="repair-form" service="repair" heading="Tell us what’s happening" compact />
+      </div>
+    </div>
+  </section>
+</ServicePageView>
+
+<style>
+  .report__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  @media (min-width: 64rem) {
+    .report__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      column-gap: var(--s-8);
+      align-items: start;
+    }
+    .report__intro {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+  .report__lead {
+    margin-top: var(--s-5);
+    color: var(--mist);
+    font-size: var(--step-lead);
+    line-height: 1.5;
+    max-width: 40ch;
+  }
+  .report__checks {
+    display: grid;
+    margin-top: var(--s-6);
+    border-top: 1px solid var(--graphite);
+  }
+  .report__checks li {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--graphite);
+    color: var(--mist);
+  }
+  .report__checks :global(svg) {
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--bronze);
+  }
+  .report__safety {
+    display: flex;
+    gap: 0.85rem;
+    margin-top: var(--s-6);
+    padding: 1.1rem 1.2rem;
+    background: var(--basalt);
+    border: 1px solid var(--steel);
+    color: var(--mist);
+    font-size: 0.9375rem;
+  }
+  .report__safety :global(svg) {
+    flex: none;
+    color: var(--bronze);
+  }
+  .report__safety strong {
+    color: var(--bone);
+  }
+  .report__safety a {
+    color: var(--bone);
+    font-weight: 650;
+  }
+  .report__form {
+    padding: clamp(1.5rem, 1rem + 2.5vw, 3rem);
+    background: var(--limestone);
+  }
+</style>

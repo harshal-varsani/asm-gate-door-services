@@ -1,0 +1,22 @@
+{
+  "name": "asm-gate-door-services",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Website for ASM Gate & Door Services",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/sitemap": "^3.7.6",
+    "@fontsource-variable/archivo": "^5.3.0",
+    "astro": "^7.4.13"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.12",
+    "typescript": "^6.0.3"
+  }
+}

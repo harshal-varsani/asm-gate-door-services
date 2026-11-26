@@ -1,0 +1,126 @@
+---
+/**
+ * Service-area landing pages for local SEO, generated from
+ * src/data/service-areas.ts (only entries with `published: true`).
+ */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHero from '../../components/PageHero.astro';
+import Icon from '../../components/Icon.astro';
+import Faq from '../../components/Faq.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { publishedAreas, type ServiceArea } from '../../data/service-areas';
+import { servicePages } from '../../data/services';
+import { homeFaqs } from '../../data/faqs';
+import { site } from '../../config/site';
+import { breadcrumbSchema, serviceSchema } from '../../lib/schema';
+
+export function getStaticPaths() {
+  return publishedAreas.map((area) => ({ params: { slug: area.slug }, props: { area } }));
+}
+
+const { area } = Astro.props as { area: ServiceArea };
+const base = Astro.site ?? Astro.url;
+const path = `/service-areas/${area.slug}/`;
+---
+
+<BaseLayout
+  title={`Garage Doors & Gates in ${area.name}`}
+  description={`Garage doors, automatic gates, automation and repairs in ${area.name}. Request a quote from ${site.name}.`}
+  ogImage={area.image}
+  overlayHeader
+  schema={[
+    breadcrumbSchema(base, [
+      { name: 'Home', path: '/' },
+      { name: area.name, path },
+    ]),
+    serviceSchema(base, {
+      name: `Garage doors and gates in ${area.name}`,
+      description: area.intro,
+      path,
+      offers: servicePages.map((p) => p.name),
+    }),
+  ]}
+>
+  <PageHero heading={`Garage doors & gates in ${area.name}`} intro={area.intro} image={area.image} crumbs={[{ name: area.name, path }]} />
+
+  <section class="ar section on-light" aria-labelledby="ar-services">
+    <div class="wrap ar__grid">
+      <div>
+        <h2 id="ar-services">What we do in {area.name}</h2>
+        <ul role="list" class="ar__services">
+          {
+            servicePages.map((p) => (
+              <li>
+                <a href={p.path}>
+                  <span>{p.name}</span>
+                  <span class="ar__blurb">{p.navBlurb}</span>
+                  <Icon name="arrow" size={22} />
+                </a>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+      <div>
+        <h2 class="h4">Suburbs we cover</h2>
+        <ul role="list" class="ar__suburbs">
+          {area.suburbs.map((s) => <li>{s}</li>)}
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <Faq faqs={homeFaqs} />
+  <CtaBand heading={`Working in ${area.name}.`} />
+</BaseLayout>
+
+<style>
+  .ar__grid {
+    display: grid;
+    gap: var(--s-7);
+  }
+  @media (min-width: 64rem) {
+    .ar__grid {
+      grid-template-columns: minmax(0, 8fr) minmax(0, 4fr);
+      column-gap: var(--s-8);
+    }
+  }
+  .ar__services {
+    margin-top: var(--s-6);
+    border-top: 1px solid var(--line-strong);
+  }
+  .ar__services a {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 0.2rem 1rem;
+    padding: 1.2rem 0;
+    border-bottom: 1px solid var(--line-strong);
+    text-decoration: none;
+    font-size: var(--step-h4);
+    font-weight: 700;
+    font-stretch: 112%;
+  }
+  .ar__services :global(svg) {
+    grid-row: span 2;
+    align-self: center;
+    color: var(--bronze-ink);
+  }
+  .ar__blurb {
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+    font-weight: 450;
+    font-stretch: 100%;
+  }
+  .ar__suburbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: var(--s-5);
+  }
+  .ar__suburbs li {
+    padding: 0.5rem 0.8rem;
+    background: var(--bone);
+    border: 1px solid var(--line);
+    font-size: 0.9375rem;
+  }
+</style>

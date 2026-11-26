@@ -1,0 +1,878 @@
+---
+/**
+ * Quote request form.
+ *
+ * Delivery is configured in src/config/site.ts → form:
+ *   provider 'netlify'  — Netlify Forms picks this form up at deploy time
+ *                         (static HTML below). Turn on email notifications in
+ *                         Netlify → Forms → Form notifications.
+ *   provider 'endpoint' — POSTs multipart data to form.endpoint (Formspree etc).
+ *
+ * Without JavaScript the form still submits normally and lands on /thank-you/.
+ * With JavaScript: inline validation, photo previews, client-side photo
+ * resizing (phone photos are large), and in-page loading/success/error states.
+ */
+import Icon from './Icon.astro';
+import { site } from '../config/site';
+import { formServices } from '../data/services';
+
+interface Props {
+  id?: string;
+  /** Preselected service value (overridden by ?service= in the URL). */
+  service?: string;
+  heading?: string;
+  compact?: boolean;
+}
+const { id = 'quote', service = '', heading = 'Request a quote', compact = false } = Astro.props;
+const f = site.form;
+const isNetlify = f.provider === 'netlify';
+const action = isNetlify ? '/thank-you/' : f.endpoint || '/thank-you/';
+const uid = id;
+---
+
+<div class:list={['qf', { 'qf--compact': compact }]} id={id} data-quote-form-root>
+  <form
+    class="qf__form"
+    name={f.name}
+    method="POST"
+    action={action}
+    enctype="multipart/form-data"
+    data-netlify={isNetlify ? 'true' : undefined}
+    netlify-honeypot={isNetlify ? 'company_website' : undefined}
+    data-provider={f.provider}
+    data-max-photos={f.maxPhotos}
+    data-max-mb={f.maxPhotoMB}
+    novalidate
+    data-quote-form
+    aria-labelledby={`${uid}-title`}
+  >
+    <h2 class="qf__title h3" id={`${uid}-title`}>{heading}</h2>
+    <p class="qf__intro">
+      Fields marked <span aria-hidden="true">*</span><span class="visually-hidden">with an asterisk</span> are required. It takes about two minutes.
+    </p>
+
+    <div class="qf__alert" role="alert" data-form-alert hidden>
+      <Icon name="alert" size={20} />
+      <div>
+        <p class="qf__alert-title" data-form-alert-title>We couldn’t send your request.</p>
+        <p data-form-alert-text>
+          Please try again, or call us on <a href={site.contact.phoneHref}>{site.contact.phoneDisplay}</a>.
+        </p>
+      </div>
+    </div>
+
+    <input type="hidden" name="form-name" value={f.name} />
+    <input type="hidden" name="source_page" value="" data-source />
+    <p class="visually-hidden" aria-hidden="true">
+      <label>Leave this empty: <input name="company_website" tabindex="-1" autocomplete="off" /></label>
+    </p>
+
+    <!-- What -->
+    <fieldset class="qf__group" data-field="service">
+      <legend class="qf__legend">What do you need help with? <span class="qf__req" aria-hidden="true">*</span></legend>
+      <div class="qf__tiles">
+        {
+          formServices.map((s) => (
+            <label class="qf__tile">
+              <input type="radio" name="service" value={s.label} data-value={s.value} required checked={s.value === service} />
+              <span>{s.label}</span>
+            </label>
+          ))
+        }
+      </div>
+      <p class="qf__error" id={`${uid}-service-error`} data-error hidden></p>
+    </fieldset>
+
+    <fieldset class="qf__group">
+      <legend class="qf__legend">Property type</legend>
+      <div class="qf__segmented">
+        <label class="qf__seg"><input type="radio" name="property_type" value="Residential" checked /> <span>Residential</span></label>
+        <label class="qf__seg"><input type="radio" name="property_type" value="Commercial" /> <span>Commercial</span></label>
+      </div>
+    </fieldset>
+
+    <!-- Who -->
+    <div class="qf__row">
+      <div class="qf__field" data-field="name">
+        <label for={`${uid}-name`}>Name <span class="qf__req" aria-hidden="true">*</span></label>
+        <input id={`${uid}-name`} name="name" type="text" autocomplete="name" required aria-describedby={`${uid}-name-error`} />
+        <p class="qf__error" id={`${uid}-name-error`} data-error hidden></p>
+      </div>
+      <div class="qf__field" data-field="phone">
+        <label for={`${uid}-phone`}>Phone <span class="qf__req" aria-hidden="true">*</span></label>
+        <input
+          id={`${uid}-phone`}
+          name="phone"
+          type="tel"
+          autocomplete="tel"
+          inputmode="tel"
+          required
+          aria-describedby={`${uid}-phone-error`}
+        />
+        <p class="qf__error" id={`${uid}-phone-error`} data-error hidden></p>
+      </div>
+    </div>
+    <div class="qf__row">
+      <div class="qf__field" data-field="email">
+        <label for={`${uid}-email`}>Email <span class="qf__req" aria-hidden="true">*</span></label>
+        <input
+          id={`${uid}-email`}
+          name="email"
+          type="email"
+          autocomplete="email"
+          inputmode="email"
+          spellcheck="false"
+          required
+          aria-describedby={`${uid}-email-error`}
+        />
+        <p class="qf__error" id={`${uid}-email-error`} data-error hidden></p>
+      </div>
+      <div class="qf__field" data-field="address">
+        <label for={`${uid}-address`}>Address or suburb <span class="qf__req" aria-hidden="true">*</span></label>
+        <input
+          id={`${uid}-address`}
+          name="address"
+          type="text"
+          autocomplete="street-address"
+          required
+          aria-describedby={`${uid}-address-hint ${uid}-address-error`}
+        />
+        <p class="qf__hint" id={`${uid}-address-hint`}>A suburb is fine to start with.</p>
+        <p class="qf__error" id={`${uid}-address-error`} data-error hidden></p>
+      </div>
+    </div>
+
+    <!-- Job -->
+    <div class="qf__field" data-field="message">
+      <label for={`${uid}-message`}>Tell us about the job <span class="qf__req" aria-hidden="true">*</span></label>
+      <textarea
+        id={`${uid}-message`}
+        name="message"
+        rows={compact ? 4 : 5}
+        required
+        minlength="10"
+        aria-describedby={`${uid}-message-hint ${uid}-message-error`}
+        data-message></textarea>
+      <p class="qf__hint" id={`${uid}-message-hint`}>
+        For example: size of the opening, what’s there now, the look you’re after, or what’s gone wrong.
+      </p>
+      <p class="qf__error" id={`${uid}-message-error`} data-error hidden></p>
+    </div>
+
+    <!-- Photos -->
+    <div class="qf__field" data-field="photos">
+      <span class="qf__label" id={`${uid}-photos-label`}>Photos <span class="qf__optional">optional, up to {f.maxPhotos}</span></span>
+      <label class="qf__drop" data-drop>
+        <input
+          class="qf__file"
+          type="file"
+          name="photo-1"
+          accept="image/*"
+          multiple
+          aria-labelledby={`${uid}-photos-label`}
+          aria-describedby={`${uid}-photos-hint ${uid}-photos-error`}
+          data-photos
+        />
+        <Icon name="upload" size={26} />
+        <span class="qf__drop-text"><strong>Add photos</strong> <span class="qf__drop-sub">or drag them here</span></span>
+      </label>
+      <p class="qf__hint" id={`${uid}-photos-hint`}>Photos of the door, gate, motor or problem help us quote accurately.</p>
+      <ul role="list" class="qf__thumbs" data-thumbs aria-live="polite"></ul>
+      <p class="qf__error" id={`${uid}-photos-error`} data-error hidden></p>
+      {
+        /* Extra named file fields so Netlify registers every photo slot. */
+        Array.from({ length: f.maxPhotos - 1 }, (_, i) => (
+          <input type="file" name={`photo-${i + 2}`} hidden tabindex="-1" aria-hidden="true" disabled />
+        ))
+      }
+    </div>
+
+    <!-- Consent -->
+    <div class="qf__field qf__consent" data-field="consent">
+      <label class="qf__check">
+        <input type="checkbox" name="consent" value="yes" required aria-describedby={`${uid}-consent-error`} />
+        <span>
+          I agree to {site.name} using these details to respond to my enquiry, as set out in the <a href="/privacy/">privacy policy</a>.
+          <span class="qf__req" aria-hidden="true">*</span>
+        </span>
+      </label>
+      <p class="qf__error" id={`${uid}-consent-error`} data-error hidden></p>
+    </div>
+
+    <div class="qf__submit-row">
+      <button type="submit" class="btn qf__submit" data-submit>
+        <span class="qf__submit-label">Send quote request</span>
+        <span class="qf__spinner" aria-hidden="true"></span>
+        <Icon name="arrow" class="icon-arrow qf__submit-icon" size={18} />
+      </button>
+      <p class="qf__alt">
+        Prefer to talk? <a href={site.contact.phoneHref}>{site.contact.phoneDisplay}</a>
+      </p>
+    </div>
+    <p class="visually-hidden" aria-live="polite" data-status></p>
+  </form>
+
+  <div class="qf__success" data-success hidden tabindex="-1">
+    <span class="qf__success-mark" aria-hidden="true"><Icon name="check" size={28} /></span>
+    <h2 class="h3" data-success-title>Thanks, your request is in.</h2>
+    <p>
+      We’ve received your details and will be in touch to talk through the job. If it’s urgent, call us on
+      <a href={site.contact.phoneHref}>{site.contact.phoneDisplay}</a>.
+    </p>
+    <a href="/projects/" class="link-arrow">Browse projects while you wait <Icon name="arrow" size={16} /></a>
+  </div>
+</div>
+
+<style>
+  .qf {
+    --field-bg: var(--bone);
+    --field-border: var(--pumice);
+    position: relative;
+  }
+  .qf__form {
+    display: grid;
+    gap: var(--s-6);
+  }
+  .qf__intro {
+    margin-top: calc(var(--s-4) * -1);
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+  .qf__group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+  .qf__legend,
+  .qf__field > label,
+  .qf__label {
+    display: block;
+    margin-bottom: 0.55rem;
+    font-size: 0.9375rem;
+    font-weight: 640;
+    font-stretch: 104%;
+  }
+  .qf__req {
+    color: var(--bronze-ink);
+  }
+  .qf__optional {
+    margin-left: 0.35rem;
+    color: var(--ink-soft);
+    font-weight: 450;
+  }
+
+  /* Tiles */
+  .qf__tiles {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(10.5rem, 1fr));
+    gap: 0.5rem;
+  }
+  .qf__tile,
+  .qf__seg {
+    position: relative;
+    display: flex;
+    cursor: pointer;
+  }
+  .qf__tile input,
+  .qf__seg input {
+    position: absolute;
+    opacity: 0;
+    inset: 0;
+    margin: 0;
+    cursor: pointer;
+  }
+  .qf__tile span,
+  .qf__seg span {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.75rem 1rem;
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius);
+    font-size: 0.9375rem;
+    font-weight: 580;
+    line-height: 1.25;
+    transition: border-color var(--t-fast), background-color var(--t-fast), color var(--t-fast);
+  }
+  .qf__tile:hover span,
+  .qf__seg:hover span {
+    border-color: var(--ink);
+  }
+  .qf__tile input:checked + span,
+  .qf__seg input:checked + span {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: var(--bone);
+  }
+  .qf__tile input:checked + span {
+    box-shadow: inset 3px 0 0 var(--bronze);
+  }
+  .qf__tile input:focus-visible + span,
+  .qf__seg input:focus-visible + span,
+  .qf__check input:focus-visible {
+    outline: 2px solid var(--bronze-ink);
+    outline-offset: 2px;
+  }
+  .qf__segmented {
+    display: inline-grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    min-width: min(100%, 20rem);
+  }
+  .qf__seg span {
+    justify-content: center;
+  }
+
+  /* Fields */
+  .qf__row {
+    display: grid;
+    gap: var(--s-6);
+  }
+  @media (min-width: 40rem) {
+    .qf__row {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--s-5);
+    }
+  }
+  .qf__field input:not([type='checkbox']):not([type='radio']):not([type='file']),
+  .qf__field textarea {
+    display: block;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.8rem 0.95rem;
+    background: var(--field-bg);
+    border: 1px solid var(--field-border);
+    border-radius: var(--radius);
+    font-size: 1rem;
+    line-height: 1.4;
+    transition: border-color var(--t-fast), box-shadow var(--t-fast);
+  }
+  .qf__field textarea {
+    resize: vertical;
+    min-height: 8.5rem;
+  }
+  .qf__field input:hover,
+  .qf__field textarea:hover {
+    border-color: var(--ink-soft);
+  }
+  .qf__field input:focus-visible,
+  .qf__field textarea:focus-visible {
+    outline: none;
+    border-color: var(--ink);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--bronze) 45%, transparent);
+  }
+  .qf__field input[aria-invalid='true'],
+  .qf__field textarea[aria-invalid='true'] {
+    border-color: var(--error);
+    box-shadow: inset 3px 0 0 var(--error);
+  }
+  .qf__hint {
+    margin-top: 0.45rem;
+    color: var(--ink-soft);
+    font-size: 0.875rem;
+  }
+  .qf__error {
+    display: flex;
+    gap: 0.4rem;
+    margin-top: 0.45rem;
+    color: var(--error);
+    font-size: 0.875rem;
+    font-weight: 560;
+  }
+  .qf__error[hidden] {
+    display: none;
+  }
+  .qf__error::before {
+    content: '';
+    flex: none;
+    width: 0.9rem;
+    height: 2px;
+    margin-top: 0.6rem;
+    background: currentColor;
+  }
+
+  /* Photos */
+  .qf__drop {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1.1rem 1.2rem;
+    background: var(--field-bg);
+    border: 1px dashed var(--ink-soft);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: border-color var(--t-fast), background-color var(--t-fast);
+  }
+  .qf__drop:hover,
+  .qf__drop.is-dragging {
+    border-color: var(--ink);
+    border-style: solid;
+    background: #fff;
+  }
+  .qf__drop :global(svg) {
+    color: var(--bronze-ink);
+    flex: none;
+  }
+  .qf__drop:focus-within {
+    outline: 2px solid var(--bronze-ink);
+    outline-offset: 2px;
+  }
+  .qf__file {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+  }
+  .qf__drop-text strong {
+    font-weight: 650;
+  }
+  .qf__drop-sub {
+    color: var(--ink-soft);
+  }
+  .qf__thumbs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+  }
+  .qf__thumbs:empty {
+    display: none;
+  }
+  .qf__thumbs :global(li) {
+    position: relative;
+    width: 5.5rem;
+    height: 5.5rem;
+    background: var(--concrete);
+  }
+  .qf__thumbs :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .qf__thumbs :global(button) {
+    position: absolute;
+    top: 0.25rem;
+    right: 0.25rem;
+    display: grid;
+    place-items: center;
+    width: 1.75rem;
+    height: 1.75rem;
+    padding: 0;
+    background: rgb(20 21 23 / 0.85);
+    color: var(--bone);
+    border: 0;
+    border-radius: var(--radius);
+  }
+  .qf__thumbs :global(button:hover) {
+    background: var(--error);
+  }
+
+  /* Consent */
+  .qf__field > .qf__check,
+  .qf__check {
+    margin: 0;
+    font-weight: 450;
+    font-stretch: 100%;
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    font-size: 0.9375rem;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+  .qf__check input {
+    appearance: none;
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0.1rem 0 0;
+    background: var(--field-bg);
+    border: 1px solid var(--ink-soft);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: background-color var(--t-fast), border-color var(--t-fast);
+  }
+  .qf__check input::after {
+    content: '';
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--ironsand);
+    clip-path: polygon(14% 52%, 0 66%, 38% 100%, 100% 22%, 86% 8%, 38% 72%);
+    transform: scale(0);
+    transition: transform var(--t-fast) var(--ease-out);
+  }
+  .qf__check input:hover {
+    border-color: var(--ink);
+  }
+  .qf__check input:checked {
+    background: var(--bronze);
+    border-color: var(--bronze-lo);
+  }
+  .qf__check input:checked::after {
+    transform: scale(1);
+  }
+  .qf__check input[aria-invalid='true'] {
+    border-color: var(--error);
+  }
+  .qf__check a {
+    color: var(--ink);
+  }
+
+  /* Submit */
+  .qf__submit-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--s-4) var(--s-5);
+  }
+  .qf__submit {
+    min-width: 15rem;
+  }
+  .qf__alt {
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+  .qf__alt a {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .qf__spinner {
+    display: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    border: 2px solid rgb(20 21 23 / 0.25);
+    border-top-color: var(--ironsand);
+    border-radius: 50%;
+    animation: qf-spin 0.8s linear infinite;
+  }
+  .qf__form.is-sending .qf__spinner {
+    display: inline-block;
+  }
+  .qf__form.is-sending .qf__submit-icon {
+    display: none;
+  }
+  @keyframes qf-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Alert */
+  .qf__alert {
+    display: flex;
+    gap: 0.75rem;
+    padding: 1rem 1.1rem;
+    background: #fbeeec;
+    border: 1px solid color-mix(in srgb, var(--error) 35%, transparent);
+    color: var(--ink);
+    font-size: 0.9375rem;
+  }
+  .qf__alert[hidden] {
+    display: none;
+  }
+  .qf__alert :global(svg) {
+    flex: none;
+    color: var(--error);
+  }
+  .qf__alert-title {
+    font-weight: 650;
+  }
+
+  /* Success */
+  .qf__success {
+    display: grid;
+    gap: var(--s-4);
+    justify-items: start;
+    padding: var(--s-7) 0;
+  }
+  .qf__success[hidden] {
+    display: none;
+  }
+  .qf__success:focus {
+    outline: none;
+  }
+  .qf__success p {
+    color: var(--ink-soft);
+    max-width: 46ch;
+  }
+  .qf__success p a {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .qf__success-mark {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    background: var(--ink);
+    color: var(--bronze-hi);
+  }
+</style>
+
+<script>
+  type Photo = { file: File; url: string };
+
+  const PHONE_RE = /^[+()\d\s-]{7,20}$/;
+  const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+  /** Downscale large photos so uploads stay small (phone photos are 3–8 MB). */
+  async function shrink(file: File, max = 1800, quality = 0.82): Promise<Blob | File> {
+    if (!file.type.startsWith('image/') || file.size < 600_000) return file;
+    try {
+      const bmp = await createImageBitmap(file);
+      const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.round(bmp.width * scale);
+      canvas.height = Math.round(bmp.height * scale);
+      canvas.getContext('2d')!.drawImage(bmp, 0, 0, canvas.width, canvas.height);
+      bmp.close?.();
+      const blob = await new Promise<Blob | null>((r) => canvas.toBlob(r, 'image/jpeg', quality));
+      return blob && blob.size < file.size ? blob : file;
+    } catch {
+      return file; // e.g. HEIC in browsers that can't decode it — send as-is
+    }
+  }
+
+  document.querySelectorAll<HTMLElement>('[data-quote-form-root]').forEach((root) => {
+    const form = root.querySelector<HTMLFormElement>('[data-quote-form]')!;
+    const success = root.querySelector<HTMLElement>('[data-success]')!;
+    const alertBox = form.querySelector<HTMLElement>('[data-form-alert]')!;
+    const alertTitle = form.querySelector<HTMLElement>('[data-form-alert-title]')!;
+    const status = form.querySelector<HTMLElement>('[data-status]')!;
+    const submitBtn = form.querySelector<HTMLButtonElement>('[data-submit]')!;
+    const submitLabel = submitBtn.querySelector<HTMLElement>('.qf__submit-label')!;
+    const photoInput = form.querySelector<HTMLInputElement>('[data-photos]')!;
+    const drop = form.querySelector<HTMLElement>('[data-drop]')!;
+    const thumbs = form.querySelector<HTMLUListElement>('[data-thumbs]')!;
+    const message = form.querySelector<HTMLTextAreaElement>('[data-message]')!;
+    const maxPhotos = Number(form.dataset.maxPhotos) || 5;
+    const maxBytes = (Number(form.dataset.maxMb) || 8) * 1024 * 1024;
+    let photos: Photo[] = [];
+    let touched = false;
+
+    // ── Prefill from the URL: ?service=gate&type=Sliding%20gates ──
+    const params = new URLSearchParams(location.search);
+    const svc = params.get('service');
+    if (svc) {
+      const radio = form.querySelector<HTMLInputElement>(`input[name="service"][data-value="${CSS.escape(svc)}"]`);
+      if (radio) radio.checked = true;
+    }
+    const prop = params.get('property');
+    if (prop) {
+      const value = prop.toLowerCase() === 'commercial' ? 'Commercial' : 'Residential';
+      const r = form.querySelector<HTMLInputElement>(`input[name="property_type"][value="${value}"]`);
+      if (r) r.checked = true;
+    }
+    const type = params.get('type');
+    if (type && !message.value) message.value = `I’m interested in: ${type.slice(0, 80)}\n\n`;
+    const source = form.querySelector<HTMLInputElement>('[data-source]');
+    if (source) source.value = location.pathname + location.search;
+
+    // ── Validation ─────────────────────────────────────
+    const fieldBox = (name: string) => form.querySelector<HTMLElement>(`[data-field="${name}"]`);
+    const setError = (name: string, msg: string) => {
+      const box = fieldBox(name);
+      if (!box) return;
+      const err = box.querySelector<HTMLElement>('[data-error]');
+      const ctrl = box.querySelector<HTMLInputElement>('input:not([type=radio]):not([type=file]), textarea');
+      if (err) {
+        err.textContent = msg;
+        err.hidden = !msg;
+      }
+      if (ctrl) ctrl.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      if (name === 'service') {
+        box.querySelectorAll('input').forEach((r) => {
+          r.setAttribute('aria-invalid', msg ? 'true' : 'false');
+          if (msg) r.setAttribute('aria-describedby', err?.id ?? '');
+          else r.removeAttribute('aria-describedby');
+        });
+      }
+    };
+
+    const rules: Record<string, () => string> = {
+      service: () => (form.querySelector('input[name="service"]:checked') ? '' : 'Choose what you need help with.'),
+      name: () => ((form.elements.namedItem('name') as HTMLInputElement).value.trim() ? '' : 'Enter your name.'),
+      phone: () => {
+        const v = (form.elements.namedItem('phone') as HTMLInputElement).value.trim();
+        if (!v) return 'Enter a phone number so we can call you back.';
+        return PHONE_RE.test(v) && v.replace(/\D/g, '').length >= 7 ? '' : 'Enter a valid phone number, e.g. 021 123 4567.';
+      },
+      email: () => {
+        const v = (form.elements.namedItem('email') as HTMLInputElement).value.trim();
+        if (!v) return 'Enter your email address.';
+        return EMAIL_RE.test(v) ? '' : 'Enter an email address like name@example.co.nz.';
+      },
+      address: () =>
+        (form.elements.namedItem('address') as HTMLInputElement).value.trim() ? '' : 'Enter the address or suburb of the job.',
+      message: () => {
+        const v = message.value.trim();
+        if (!v) return 'Tell us a little about the job.';
+        return v.length >= 10 ? '' : 'Add a few more details (at least 10 characters).';
+      },
+      consent: () =>
+        (form.elements.namedItem('consent') as HTMLInputElement).checked ? '' : 'Tick the box so we can respond to your enquiry.',
+    };
+
+    const validate = (name: string) => {
+      const msg = rules[name]?.() ?? '';
+      setError(name, msg);
+      return !msg;
+    };
+
+    Object.keys(rules).forEach((name) => {
+      const box = fieldBox(name);
+      box?.querySelectorAll('input, textarea').forEach((el) => {
+        el.addEventListener('blur', () => touched && validate(name));
+        el.addEventListener('change', () => touched && validate(name));
+        el.addEventListener('input', () => {
+          if (el.getAttribute('aria-invalid') === 'true') validate(name);
+        });
+      });
+    });
+
+    // ── Photos ─────────────────────────────────────────
+    const renderThumbs = () => {
+      thumbs.innerHTML = '';
+      photos.forEach((p, i) => {
+        const li = document.createElement('li');
+        const img = document.createElement('img');
+        img.src = p.url;
+        img.alt = `Photo ${i + 1}: ${p.file.name}`;
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.setAttribute('aria-label', `Remove photo ${i + 1}`);
+        btn.innerHTML =
+          '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+        btn.addEventListener('click', () => {
+          URL.revokeObjectURL(p.url);
+          photos.splice(i, 1);
+          renderThumbs();
+          photoInput.focus();
+        });
+        li.append(img, btn);
+        thumbs.append(li);
+      });
+    };
+
+    const addFiles = (files: FileList | File[]) => {
+      const list = Array.from(files).filter((f) => f.type.startsWith('image/') || /\.(heic|heif)$/i.test(f.name));
+      let msg = '';
+      for (const file of list) {
+        if (photos.length >= maxPhotos) {
+          msg = `You can add up to ${maxPhotos} photos.`;
+          break;
+        }
+        if (file.size > 25 * 1024 * 1024) {
+          msg = `${file.name} is too large (max 25 MB).`;
+          continue;
+        }
+        photos.push({ file, url: URL.createObjectURL(file) });
+      }
+      if (list.length < Array.from(files).length) msg = msg || 'Only image files can be attached.';
+      setError('photos', msg);
+      renderThumbs();
+    };
+
+    photoInput.addEventListener('change', () => {
+      if (photoInput.files?.length) addFiles(photoInput.files);
+      photoInput.value = '';
+    });
+    ['dragenter', 'dragover'].forEach((t) =>
+      drop.addEventListener(t, (e) => {
+        e.preventDefault();
+        drop.classList.add('is-dragging');
+      }),
+    );
+    ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, () => drop.classList.remove('is-dragging')));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      if (e.dataTransfer?.files) addFiles(e.dataTransfer.files);
+    });
+
+    // ── Submit ─────────────────────────────────────────
+    const setSending = (on: boolean) => {
+      form.classList.toggle('is-sending', on);
+      submitBtn.disabled = on;
+      submitBtn.setAttribute('aria-busy', String(on));
+      submitLabel.textContent = on ? 'Sending…' : 'Send quote request';
+    };
+
+    const showAlert = (title: string) => {
+      alertTitle.textContent = title;
+      alertBox.hidden = false;
+      alertBox.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      touched = true;
+      alertBox.hidden = true;
+
+      const invalid = Object.keys(rules).filter((n) => !validate(n));
+      if (invalid.length) {
+        status.textContent = `Please check ${invalid.length} ${invalid.length === 1 ? 'field' : 'fields'}.`;
+        const first = fieldBox(invalid[0])?.querySelector<HTMLElement>('input, textarea');
+        first?.focus();
+        return;
+      }
+
+      setSending(true);
+      status.textContent = 'Sending your request…';
+      try {
+        const data = new FormData(form);
+        data.delete('photo-1');
+        for (let i = 2; i <= maxPhotos; i++) data.delete(`photo-${i}`);
+        let total = 0;
+        for (let i = 0; i < photos.length; i++) {
+          const blob = await shrink(photos[i].file);
+          total += blob.size;
+          const name = blob instanceof File ? blob.name : photos[i].file.name.replace(/\.\w+$/, '') + '.jpg';
+          data.append(`photo-${i + 1}`, blob, name);
+        }
+        if (total > maxBytes) {
+          setSending(false);
+          setError('photos', 'Those photos are too large to send together. Remove one or two and try again.');
+          fieldBox('photos')?.querySelector<HTMLElement>('input')?.focus();
+          return;
+        }
+
+        const provider = form.dataset.provider;
+        let ok = false;
+        if (import.meta.env.DEV && provider === 'netlify') {
+          // Netlify Forms only exists once deployed; simulate locally.
+          console.info('[dev] Quote form submission simulated. Fields:', Object.fromEntries(data.entries()));
+          await new Promise((r) => setTimeout(r, 900));
+          ok = true;
+        } else {
+          const res = await fetch(provider === 'netlify' ? '/' : form.action, {
+            method: 'POST',
+            body: data,
+            headers: { Accept: 'application/json' },
+          });
+          ok = res.ok;
+        }
+        if (!ok) throw new Error('Request failed');
+
+        const name = String(data.get('name') || '').trim().split(/\s+/)[0];
+        const title = success.querySelector('[data-success-title]');
+        if (title && name) title.textContent = `Thanks ${name}, your request is in.`;
+        form.hidden = true;
+        success.hidden = false;
+        success.focus();
+        photos.forEach((p) => URL.revokeObjectURL(p.url));
+        window.dispatchEvent(new CustomEvent('quote:submitted'));
+      } catch {
+        setSending(false);
+        status.textContent = '';
+        showAlert(navigator.onLine ? 'We couldn’t send your request.' : 'You appear to be offline.');
+      }
+    });
+  });
+</script>

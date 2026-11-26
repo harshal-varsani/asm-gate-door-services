@@ -1,0 +1,569 @@
+---
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import Photo from './Photo.astro';
+import { site } from '../config/site';
+import { servicePages } from '../data/services';
+
+interface Props {
+  overlay?: boolean;
+}
+const { overlay = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/?$/, '/');
+const isServices = servicePages.some((p) => path.startsWith(p.path));
+const links = [
+  { href: '/projects/', label: 'Projects' },
+  { href: '/about/', label: 'About' },
+  { href: '/contact/', label: 'Contact' },
+];
+---
+
+<header class:list={['site-header on-dark', { 'is-overlay': overlay }]} data-header>
+  <div class="wrap header__inner">
+    <a href="/" class="header__brand" aria-label={`${site.name}, home`}>
+      <Logo />
+    </a>
+
+    <nav class="header__nav" aria-label="Main">
+      <ul role="list" class="nav__list">
+        <li class="nav__item nav__item--mega" data-mega>
+          <button
+            class="nav__link nav__trigger"
+            type="button"
+            aria-expanded="false"
+            aria-controls="mega-services"
+            aria-current={isServices ? 'true' : undefined}
+            data-mega-trigger
+          >
+            Services <Icon name="chevron-down" size={16} />
+          </button>
+          <div class="mega" id="mega-services" data-mega-panel hidden>
+            <div class="wrap mega__inner">
+              <ul role="list" class="mega__grid">
+                {
+                  servicePages.map((p) => (
+                    <li>
+                      <a href={p.path} class="mega__card" aria-current={path.startsWith(p.path) ? 'page' : undefined}>
+                        <span class="frame mega__img">
+                          <Photo image={p.image} sizes="(min-width: 64rem) 22vw, 50vw" widths={[480, 720]} />
+                        </span>
+                        <span class="mega__name">
+                          {p.name}
+                          <Icon name="arrow" size={18} />
+                        </span>
+                        <span class="mega__blurb">{p.navBlurb}</span>
+                      </a>
+                      <ul role="list" class="mega__subs">
+                        {p.categories.slice(0, 4).map((c) => (
+                          <li>
+                            <a href={`${p.path}#${c.id}`}>{c.short}</a>
+                          </li>
+                        ))}
+                      </ul>
+                    </li>
+                  ))
+                }
+              </ul>
+              <div class="mega__foot">
+                <p>Not sure what you need? Describe the job and we’ll recommend the right solution.</p>
+                <a href="/contact/" class="link-arrow">Request a quote <Icon name="arrow" size={16} /></a>
+              </div>
+            </div>
+          </div>
+        </li>
+        {
+          links.map((l) => (
+            <li class="nav__item">
+              <a href={l.href} class="nav__link" aria-current={path === l.href ? 'page' : undefined}>
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="header__actions">
+      <a href={site.contact.phoneHref} class="header__phone">
+        <Icon name="phone" size={18} />
+        <span class="tabular">{site.contact.phoneDisplay}</span>
+      </a>
+      <a href="/contact/" class="btn header__cta">Request a quote</a>
+      <a href={site.contact.phoneHref} class="header__icon-btn header__call-mobile" aria-label={`Call ${site.shortName}`}>
+        <Icon name="phone" size={22} />
+      </a>
+      <button class="header__icon-btn header__menu-btn" type="button" aria-label="Open menu" aria-haspopup="dialog" data-menu-open>
+        <Icon name="menu" size={24} />
+      </button>
+    </div>
+  </div>
+
+  <dialog class="mobile-menu on-dark" aria-label="Menu" data-menu>
+    <div class="mobile-menu__top wrap">
+      <a href="/" class="header__brand" aria-label={`${site.name}, home`}><Logo /></a>
+      <button class="header__icon-btn" type="button" aria-label="Close menu" data-menu-close autofocus>
+        <Icon name="close" size={24} />
+      </button>
+    </div>
+    <nav class="mobile-menu__body wrap" aria-label="Mobile">
+      <p class="label mobile-menu__label">Services</p>
+      <ul role="list" class="mobile-menu__services">
+        {
+          servicePages.map((p) => (
+            <li>
+              <a href={p.path} aria-current={path.startsWith(p.path) ? 'page' : undefined}>
+                <span>{p.name}</span>
+                <Icon name="arrow" size={20} />
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <div class="groove mobile-menu__groove"></div>
+      <ul role="list" class="mobile-menu__links">
+        <li><a href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a></li>
+        {links.map((l) => <li><a href={l.href} aria-current={path === l.href ? 'page' : undefined}>{l.label}</a></li>)}
+      </ul>
+    </nav>
+    <div class="mobile-menu__actions wrap">
+      <a href={site.contact.phoneHref} class="btn btn--ghost btn--block"><Icon name="phone" size={18} /> Call {site.contact.phoneDisplay}</a>
+      <a href="/contact/" class="btn btn--block">Request a quote <Icon name="arrow" class="icon-arrow" size={18} /></a>
+    </div>
+  </dialog>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--ironsand);
+    transition: background-color var(--t-med) ease, box-shadow var(--t-med) ease;
+  }
+  .site-header::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -2px;
+    height: 2px;
+    background: var(--groove-dark);
+    transition: opacity var(--t-med) ease;
+  }
+  .site-header.is-overlay {
+    position: fixed;
+    inset: 0 0 auto;
+    background: transparent;
+  }
+  .site-header.is-overlay::after {
+    opacity: 0;
+  }
+  .site-header.is-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 -3rem;
+    background: linear-gradient(to bottom, rgb(10 10 12 / 0.62), transparent);
+    pointer-events: none;
+    transition: opacity var(--t-med) ease;
+  }
+  .site-header.is-overlay.is-scrolled,
+  .site-header.is-overlay.is-open {
+    background: var(--ironsand);
+  }
+  .site-header.is-overlay.is-scrolled::after,
+  .site-header.is-overlay.is-open::after {
+    opacity: 1;
+  }
+  .site-header.is-overlay.is-scrolled::before,
+  .site-header.is-overlay.is-open::before {
+    opacity: 0;
+  }
+
+  .header__inner {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--s-6);
+    height: var(--header-h);
+  }
+  .header__brand {
+    color: var(--bone);
+    text-decoration: none;
+    flex: none;
+  }
+
+  /* ── Desktop nav ───────────────────────────────────── */
+  .header__nav {
+    display: none;
+    margin-inline: auto;
+  }
+  .nav__list {
+    display: flex;
+    gap: clamp(0.25rem, 1vw, 1rem);
+    margin: 0;
+  }
+  .nav__link {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.75rem 0.85rem;
+    background: none;
+    border: 0;
+    color: var(--mist);
+    font-size: 0.9375rem;
+    font-weight: 560;
+    font-stretch: 106%;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+    transition: color var(--t-fast);
+  }
+  .nav__link::after {
+    content: '';
+    position: absolute;
+    left: 0.85rem;
+    right: 0.85rem;
+    bottom: 0.35rem;
+    height: 2px;
+    background: var(--bronze);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform var(--t-med) var(--ease-out);
+  }
+  .nav__link:hover,
+  .nav__link[aria-current],
+  .nav__link[aria-expanded='true'] {
+    color: var(--bone);
+  }
+  .nav__link:hover::after,
+  .nav__link[aria-current]::after {
+    transform: scaleX(1);
+  }
+  .nav__trigger :global(svg) {
+    transition: transform var(--t-med) var(--ease-out);
+  }
+  .nav__trigger[aria-expanded='true'] :global(svg) {
+    transform: rotate(180deg);
+  }
+
+  /* ── Mega menu ─────────────────────────────────────── */
+  .mega {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    background: var(--basalt);
+    border-top: 1px solid var(--graphite);
+    box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.7);
+  }
+  .mega:not([hidden]) {
+    animation: mega-in var(--t-med) var(--ease-out);
+  }
+  @keyframes mega-in {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+  .mega__inner {
+    padding-block: var(--s-6) var(--s-5);
+  }
+  .mega__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--s-5);
+    margin: 0;
+  }
+  .mega__card {
+    display: grid;
+    gap: 0.5rem;
+    text-decoration: none;
+    color: var(--bone);
+  }
+  .mega__img {
+    aspect-ratio: 16 / 10;
+    margin-bottom: 0.4rem;
+  }
+  .mega__img :global(img) {
+    transition: transform var(--t-slow) var(--ease-out);
+  }
+  .mega__card:hover .mega__img :global(img) {
+    transform: scale(1.04);
+  }
+  .mega__name {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1.125rem;
+    font-weight: 700;
+    font-stretch: 112%;
+    letter-spacing: -0.01em;
+  }
+  .mega__name :global(svg) {
+    color: var(--bronze);
+    transition: transform var(--t-med) var(--ease-out);
+  }
+  .mega__card:hover .mega__name :global(svg) {
+    transform: translateX(4px);
+  }
+  .mega__blurb {
+    color: var(--ash);
+    font-size: 0.875rem;
+    line-height: 1.45;
+  }
+  .mega__subs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 0.9rem;
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
+  }
+  .mega__subs a {
+    color: var(--mist);
+    text-decoration: none;
+  }
+  .mega__subs a:hover {
+    color: var(--bronze-glint);
+    text-decoration: underline;
+  }
+  .mega__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--s-5);
+    margin-top: var(--s-6);
+    padding-top: var(--s-5);
+    border-top: 1px solid var(--graphite);
+    color: var(--ash);
+    font-size: 0.9375rem;
+  }
+
+  /* ── Actions ───────────────────────────────────────── */
+  .header__actions {
+    display: flex;
+    align-items: center;
+    gap: var(--s-4);
+    margin-left: auto;
+  }
+  .header__phone {
+    display: none;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--bone);
+    font-weight: 600;
+    font-stretch: 106%;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .header__phone :global(svg) {
+    color: var(--bronze);
+  }
+  .header__phone:hover {
+    color: var(--bronze-glint);
+  }
+  .header__cta {
+    display: none;
+    min-height: 2.875rem;
+    padding: 0.75rem 1.2rem;
+    font-size: 0.8125rem;
+  }
+  .header__icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 2.875rem;
+    height: 2.875rem;
+    background: transparent;
+    border: 1px solid var(--steel);
+    border-radius: var(--radius);
+    color: var(--bone);
+    transition: border-color var(--t-fast), background-color var(--t-fast);
+  }
+  .header__icon-btn:hover {
+    border-color: var(--bronze);
+  }
+
+  @media (min-width: 40rem) {
+    .header__cta {
+      display: inline-flex;
+    }
+  }
+  @media (min-width: 64rem) {
+    .header__nav {
+      display: block;
+    }
+    .header__menu-btn,
+    .header__call-mobile {
+      display: none;
+    }
+    .header__actions {
+      margin-left: 0;
+    }
+  }
+  @media (min-width: 80rem) {
+    .header__phone {
+      display: inline-flex;
+    }
+  }
+
+  /* ── Mobile menu (native dialog: focus trap + Esc) ─── */
+  .mobile-menu {
+    width: 100%;
+    max-width: none;
+    height: 100%;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--ironsand);
+    color: var(--bone);
+    overflow-y: auto;
+  }
+  .mobile-menu[open] {
+    display: flex;
+    flex-direction: column;
+    animation: menu-in 420ms var(--ease-door);
+  }
+  @keyframes menu-in {
+    from {
+      clip-path: inset(0 0 100% 0);
+    }
+    to {
+      clip-path: inset(0 0 0 0);
+    }
+  }
+  .mobile-menu::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  .mobile-menu__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: var(--header-h);
+    flex: none;
+  }
+  .mobile-menu__body {
+    flex: 1;
+    padding-top: var(--s-5);
+  }
+  .mobile-menu__label {
+    color: var(--ash);
+    margin-bottom: var(--s-3);
+  }
+  .mobile-menu__services a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 0;
+    border-bottom: 1px solid var(--graphite);
+    font-size: clamp(1.375rem, 1.1rem + 1.4vw, 1.75rem);
+    font-weight: 720;
+    font-stretch: 115%;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  .mobile-menu__services a :global(svg) {
+    color: var(--bronze);
+  }
+  .mobile-menu__services a[aria-current] span {
+    color: var(--bronze-glint);
+  }
+  .mobile-menu__groove {
+    margin-block: var(--s-6) var(--s-4);
+  }
+  .mobile-menu__links {
+    display: grid;
+    gap: 0.25rem;
+  }
+  .mobile-menu__links a {
+    display: block;
+    padding: 0.55rem 0;
+    color: var(--mist);
+    font-size: 1.125rem;
+    font-weight: 560;
+    text-decoration: none;
+  }
+  .mobile-menu__links a[aria-current] {
+    color: var(--bronze-glint);
+  }
+  .mobile-menu__actions {
+    display: grid;
+    gap: var(--s-3);
+    padding-block: var(--s-5) max(var(--s-5), env(safe-area-inset-bottom));
+    flex: none;
+  }
+</style>
+
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  if (header) {
+    // Solid background once the page scrolls (overlay header only).
+    const onScroll = () => header.classList.toggle('is-scrolled', window.scrollY > 24);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // ── Services mega menu ─────────────────────────────
+    const item = header.querySelector<HTMLElement>('[data-mega]');
+    const trigger = header.querySelector<HTMLButtonElement>('[data-mega-trigger]');
+    const panel = header.querySelector<HTMLElement>('[data-mega-panel]');
+    let closeTimer: number | undefined;
+    /** How the menu was opened: a hover-opened menu is pinned (not closed) by a click. */
+    let openedBy: 'hover' | 'click' | null = null;
+
+    const setOpen = (open: boolean, by: 'hover' | 'click' | null = null) => {
+      if (!trigger || !panel) return;
+      openedBy = open ? (openedBy && !panel.hidden ? openedBy : by) : null;
+      trigger.setAttribute('aria-expanded', String(open));
+      panel.hidden = !open;
+      header.classList.toggle('is-open', open);
+    };
+
+    trigger?.addEventListener('click', () => {
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (isOpen && openedBy === 'hover') {
+        openedBy = 'click';
+        return;
+      }
+      setOpen(!isOpen, 'click');
+    });
+
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)');
+    item?.addEventListener('mouseenter', () => {
+      if (!finePointer.matches) return;
+      window.clearTimeout(closeTimer);
+      setOpen(true, 'hover');
+    });
+    item?.addEventListener('mouseleave', () => {
+      if (!finePointer.matches) return;
+      closeTimer = window.setTimeout(() => setOpen(false), 180);
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && trigger?.getAttribute('aria-expanded') === 'true') {
+        setOpen(false);
+        trigger.focus();
+      }
+    });
+    document.addEventListener('click', (e) => {
+      if (item && !item.contains(e.target as Node)) setOpen(false);
+    });
+    item?.addEventListener('focusout', (e) => {
+      if (item && !item.contains(e.relatedTarget as Node)) setOpen(false);
+    });
+
+    // ── Mobile menu ───────────────────────────────────
+    const dialog = header.querySelector<HTMLDialogElement>('[data-menu]');
+    const openBtn = header.querySelector<HTMLButtonElement>('[data-menu-open]');
+    const closeBtn = header.querySelector<HTMLButtonElement>('[data-menu-close]');
+    openBtn?.addEventListener('click', () => {
+      dialog?.showModal();
+      document.documentElement.style.overflow = 'hidden';
+    });
+    const close = () => dialog?.close();
+    closeBtn?.addEventListener('click', close);
+    dialog?.addEventListener('close', () => {
+      document.documentElement.style.overflow = '';
+      openBtn?.focus();
+    });
+    dialog?.querySelectorAll('a').forEach((a) => a.addEventListener('click', close));
+    const wide = window.matchMedia('(min-width: 64rem)');
+    wide.addEventListener('change', (e) => e.matches && close());
+  }
+</script>

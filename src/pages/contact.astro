@@ -1,0 +1,276 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import Icon from '../components/Icon.astro';
+import { site, isPlaceholder } from '../config/site';
+import { breadcrumbSchema } from '../lib/schema';
+
+const c = site.contact;
+const a = c.address;
+const hasAddress = Boolean(a.street) && !isPlaceholder(a.street);
+const ph = (v: string) => (isPlaceholder(v) ? 'placeholder-text' : undefined);
+const base = Astro.site ?? Astro.url;
+
+const next = [
+  { title: 'We review your request', text: 'We read the details and look at any photos you sent.' },
+  { title: 'We get in touch', text: 'To ask any questions and, where needed, arrange a site visit to measure.' },
+  { title: 'You get a clear quote', text: 'Written, itemised and explained, with no obligation.' },
+];
+---
+
+<BaseLayout
+  title="Contact & Request a Quote"
+  description={`Request a quote for garage doors, gates, automation or repairs from ${site.name}. Call, email or send the form with photos.`}
+  hideActionBar
+  schema={[breadcrumbSchema(base, [{ name: 'Home', path: '/' }, { name: 'Contact', path: '/contact/' }])]}
+>
+  <section class="ct-head on-dark" aria-labelledby="ct-heading">
+    <div class="wrap ct-head__inner">
+      <nav aria-label="Breadcrumb" class="ct-crumbs">
+        <ol role="list">
+          <li><a href="/">Home</a></li>
+          <li><span aria-current="page">Contact</span></li>
+        </ol>
+      </nav>
+      <h1 id="ct-heading" class="ct-head__title">Let’s get your quote started.</h1>
+      <p class="ct-head__lead">
+        Tell us about the door, gate or access system and we’ll come back to you. Prefer to talk? Call <a href={c.phoneHref} class="tabular">{c.phoneDisplay}</a>.
+      </p>
+    </div>
+  </section>
+
+  <section class="ct on-light" aria-label="Quote request and contact details">
+    <div class="wrap ct__grid">
+      <div class="ct__form">
+        <QuoteForm id="quote" />
+      </div>
+
+      <aside class="ct__aside" aria-label="Contact details">
+        <div class="ct__card on-dark">
+          <a href={c.phoneHref} class="ct__phone" aria-label={`Call ${c.phoneDisplay}`}>
+            <Icon name="phone" size={26} />
+            <span class:list={['tabular', ph(c.phoneDisplay)]}>{c.phoneDisplay}</span>
+          </a>
+
+          <ul role="list" class="ct__details">
+            <li>
+              <Icon name="mail" size={20} />
+              <div>
+                <p class="label ct__label">Email</p>
+                <a href={`mailto:${c.email}`} class={ph(c.email)}>{c.email}</a>
+              </div>
+            </li>
+            <li>
+              <Icon name="pin" size={20} />
+              <div>
+                <p class="label ct__label">{hasAddress ? 'Address' : 'Service area'}</p>
+                {
+                  hasAddress ? (
+                    <address>
+                      {a.street}
+                      <br />
+                      {[a.suburb, a.city, a.postcode].filter(Boolean).join(', ')}
+                    </address>
+                  ) : (
+                    <p class={ph(site.serviceArea.primary)}>{site.serviceArea.primary}</p>
+                  )
+                }
+              </div>
+            </li>
+            <li>
+              <Icon name="clock" size={20} />
+              <div>
+                <p class="label ct__label">Hours</p>
+                <dl class="ct__hours">
+                  {
+                    c.hours.map((h) => (
+                      <div>
+                        <dt>{h.days}</dt>
+                        <dd class={ph(h.time)}>{h.time}</dd>
+                      </div>
+                    ))
+                  }
+                </dl>
+              </div>
+            </li>
+          </ul>
+        </div>
+
+        <div class="ct__next">
+          <h2 class="h4">What happens next</h2>
+          <ol role="list">
+            {
+              next.map((n, i) => (
+                <li>
+                  <span class="ct__num tabular" aria-hidden="true">{i + 1}</span>
+                  <div>
+                    <p class="ct__next-title">{n.title}</p>
+                    <p class="ct__next-text">{n.text}</p>
+                  </div>
+                </li>
+              ))
+            }
+          </ol>
+        </div>
+      </aside>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .ct-head {
+    padding-block: clamp(2.25rem, 1.5rem + 2.5vw, 4rem) clamp(2rem, 1.5rem + 1.5vw, 3rem);
+  }
+  .ct-crumbs ol {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0 0 var(--s-5);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ash);
+  }
+  .ct-crumbs li + li::before {
+    content: '/';
+    margin-right: 0.5rem;
+    color: var(--ash);
+  }
+  .ct-crumbs a {
+    color: var(--mist);
+    text-decoration: none;
+  }
+  .ct-crumbs [aria-current] {
+    color: var(--bronze-glint);
+  }
+  .ct-head__title {
+    max-width: 18ch;
+    font-size: clamp(2.25rem, 1.4rem + 3vw, 4rem);
+    font-weight: 800;
+    font-stretch: 125%;
+    letter-spacing: -0.035em;
+  }
+  .ct-head__lead {
+    margin-top: var(--s-5);
+    max-width: 52ch;
+    color: var(--mist);
+    font-size: var(--step-lead);
+    line-height: 1.5;
+  }
+  .ct-head__lead a {
+    color: var(--bone);
+    font-weight: 650;
+    text-decoration-color: var(--bronze);
+  }
+
+  .ct {
+    padding-block: clamp(2.5rem, 2rem + 3vw, 5rem) var(--section);
+  }
+  .ct__grid {
+    display: grid;
+    gap: var(--s-8);
+  }
+  @media (min-width: 64rem) {
+    .ct__grid {
+      grid-template-columns: minmax(0, 7.5fr) minmax(0, 4.5fr);
+      column-gap: var(--s-8);
+      align-items: start;
+    }
+    .ct__aside {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+  .ct__card {
+    padding: var(--s-6);
+  }
+  .ct__label {
+    color: var(--ash);
+    margin-bottom: 0.3rem;
+  }
+  .ct__phone :global(svg) {
+    flex: none;
+    color: var(--bronze);
+  }
+  .ct__phone {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: clamp(1.75rem, 1.4rem + 1.4vw, 2.5rem);
+    font-weight: 780;
+    font-stretch: 118%;
+    letter-spacing: -0.02em;
+    color: var(--bone);
+    text-decoration: none;
+  }
+  .ct__phone:hover {
+    color: var(--bronze-glint);
+  }
+  .ct__details {
+    display: grid;
+    gap: var(--s-5);
+    margin-top: var(--s-6);
+    padding-top: var(--s-6);
+    border-top: 1px solid var(--graphite);
+  }
+  .ct__details li {
+    display: flex;
+    gap: 0.85rem;
+  }
+  .ct__details li > :global(svg) {
+    flex: none;
+    margin-top: 0.15rem;
+    color: var(--bronze);
+  }
+  .ct__details a,
+  .ct__details p:not(.label),
+  .ct__details address {
+    color: var(--mist);
+    font-style: normal;
+    overflow-wrap: anywhere;
+  }
+  .ct__hours > div {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.5rem;
+    color: var(--mist);
+    font-size: 0.9375rem;
+  }
+  .ct__hours dt::after {
+    content: ':';
+  }
+  .ct__hours dd {
+    margin: 0;
+  }
+  .ct__next {
+    margin-top: var(--s-6);
+    padding: var(--s-6);
+    background: var(--bone);
+    border: 1px solid var(--line);
+  }
+  .ct__next ol {
+    display: grid;
+    gap: var(--s-4);
+    margin-top: var(--s-5);
+  }
+  .ct__next li {
+    display: flex;
+    gap: 0.9rem;
+  }
+  .ct__num {
+    flex: none;
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    background: var(--ink);
+    color: var(--bronze-hi);
+    font-size: 0.875rem;
+    font-weight: 700;
+  }
+  .ct__next-title {
+    font-weight: 650;
+  }
+  .ct__next-text {
+    color: var(--ink-soft);
+    font-size: 0.9375rem;
+  }
+</style>
