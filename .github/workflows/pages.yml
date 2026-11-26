@@ -1,6 +1,7 @@
-# Publishes a preview of the site to GitHub Pages on every push to main:
-# https://<owner>.github.io/<repo>/
-# The quote form is shown but not connected on this preview (PUBLIC_PREVIEW_SITE).
+# Publishes the site to GitHub Pages on every push to main, served at the
+# custom domain https://www.asmdoors.co.nz (public/CNAME).
+# The quote form is shown but not connected here (PUBLIC_PREVIEW_SITE), because
+# GitHub Pages has no form backend.
 name: Deploy preview to GitHub Pages
 
 on:
@@ -31,11 +32,6 @@ jobs:
         run: npm run build
         env:
           PUBLIC_PREVIEW_SITE: 'true'
-      - name: Rewrite links for the /<repo>/ sub-path
-        run: node scripts/rebase-for-subpath.mjs
-        env:
-          BASE_PATH: /${{ github.event.repository.name }}
-          SITE_ORIGIN: https://${{ github.repository_owner }}.github.io
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

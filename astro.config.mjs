@@ -3,11 +3,10 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 
 /**
- * SITE_URL — set this to the live domain before launch (no trailing slash).
+ * SITE_URL — the live domain (no trailing slash).
  * It is used for canonical URLs, Open Graph tags, structured data and the sitemap.
- * TODO(launch): replace the placeholder domain below.
  */
-const SITE_URL = 'https://www.example.com';
+const SITE_URL = 'https://www.asmdoors.co.nz';
 
 export default defineConfig({
   site: SITE_URL,

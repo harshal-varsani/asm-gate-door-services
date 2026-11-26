@@ -111,7 +111,7 @@ Links can preselect the form: `/contact/?service=gate&type=Sliding%20gates&prope
 
 Any static host works (Netlify, Vercel, Cloudflare Pages, GitHub Pages). Build command `npm run build`, publish directory `dist`.
 
-**Preview on GitHub Pages:** every push to `main` publishes a preview to `https://<owner>.github.io/<repo>/` via `.github/workflows/pages.yml`. Because that address has a sub-path, the workflow runs `scripts/rebase-for-subpath.mjs` after the build to point links at `/<repo>/`. The preview is built with `PUBLIC_PREVIEW_SITE=true`, so the quote form tells visitors it isn't connected instead of pretending to send. For the real launch, host at the domain root (e.g. Netlify) where neither step is used.
+**Current hosting: GitHub Pages** at `https://www.asmdoors.co.nz`. Every push to `main` deploys via `.github/workflows/pages.yml`; the custom domain is set in the repo's Pages settings and in `public/CNAME`. The build uses `PUBLIC_PREVIEW_SITE=true` because GitHub Pages has no form backend, so the quote form tells visitors it isn't connected instead of pretending to send. To take real enquiries, either move hosting to Netlify (and drop that variable), or switch `form.provider` to `'endpoint'` with a form service URL and remove the variable from the workflow.
 
 ## Accessibility & performance notes
 
