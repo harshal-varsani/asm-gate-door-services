@@ -90,7 +90,7 @@ const ph = (v: string) => (isPlaceholder(v) ? 'placeholder-text' : undefined);
     <div class="groove"></div>
     <div class="footer__legal">
       <p>© {year} {site.name}. <span class={ph(site.legalName)}>{site.legalName}</span>.</p>
-      <p>Some photography is representative stock imagery.</p>
+      <p>Some photography is representative stock imagery. <a href="/film/" class="footer__alt">Try the Film design</a></p>
     </div>
   </div>
 </footer>
@@ -185,6 +185,10 @@ const ph = (v: string) => (isPlaceholder(v) ? 'placeholder-text' : undefined);
     padding-top: var(--s-5);
     color: var(--ash);
     font-size: 0.8125rem;
+  }
+  .footer__alt {
+    margin-left: 0.5rem;
+    color: var(--bronze-glint);
   }
   :global(body.has-action-bar) .site-footer {
     padding-bottom: calc(var(--s-5) + 4.75rem);

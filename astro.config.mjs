@@ -17,7 +17,8 @@ export default defineConfig({
   },
   integrations: [
     sitemap({
-      filter: (page) => !/\/(thank-you|404)\/?$/.test(page),
+      // /film/ is an alternative design of the same content (noindexed).
+      filter: (page) => !/\/(thank-you|404|film)\/?$/.test(page),
     }),
   ],
   prefetch: {

@@ -1,0 +1,432 @@
+---
+/**
+ * Film hero: a live three.js short (src/scripts/film-scene.ts) played like a
+ * video, with a caption per scene, a chapter scrubber and play/pause.
+ * Without WebGL or JavaScript it falls back to a painted dusk poster with the
+ * first caption. With reduced motion it shows a still of the final scene and
+ * only plays when asked.
+ */
+import { site, isPlaceholder } from '../../config/site';
+import { filmScenes } from '../../data/film';
+import { CHAPTERS, DURATION } from '../../scripts/film-scene';
+
+const c = site.contact;
+const fmt = (s: number) => `00:${String(Math.floor(s)).padStart(2, '0')}`;
+---
+
+<section class="fh" id="film" aria-labelledby="fh-title" data-film>
+  <div class="fh__poster" aria-hidden="true"></div>
+  <canvas class="fh__canvas" aria-hidden="true" data-film-canvas></canvas>
+  <div class="fh__shade" aria-hidden="true"></div>
+  <div class="fh__cut" aria-hidden="true" data-film-cut></div>
+
+  <div class="fh__copy">
+    <h1 id="fh-title" class="visually-hidden">{site.name}: gate and garage door repairs, automation and servicing</h1>
+    <div class="fh__caps" data-film-caps>
+      {
+        filmScenes.map((s, i) => (
+          <div class:list={['fh__cap', { 'is-on': i === 0 }]} data-cap={i} aria-hidden={i === 0 ? undefined : 'true'}>
+            <p class="fh__scene fm-mono">
+              <span class="fm-rec" aria-hidden="true" />
+              Scene {i + 1} of {filmScenes.length}
+            </p>
+            <p class="fh__title fm-display">
+              {s.lead}
+              <br />
+              <em>{s.accent}</em>
+            </p>
+            <p class="fh__text">{s.text}</p>
+          </div>
+        ))
+      }
+    </div>
+    <div class="fh__actions">
+      <a href="#callsheet" class="fm-btn">Get a free quote</a>
+      <a href={c.phoneHref} class="fm-btn fm-btn--ghost">
+        Call <span class={isPlaceholder(c.phoneDisplay) ? 'placeholder-text' : undefined}>{c.phoneDisplay}</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="fh__player" data-film-player hidden>
+    <button class="fh__play" type="button" aria-label="Pause the film" data-film-play>
+      <svg class="fh__ico fh__ico--pause" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5h3v14H8zM13 5h3v14h-3z" fill="currentColor"></path></svg>
+      <svg class="fh__ico fh__ico--play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l10.5-6.5z" fill="currentColor"></path></svg>
+    </button>
+    <ol class="fh__segs" role="list" aria-label="Scenes">
+      {
+        filmScenes.map((s, i) => (
+          <li style={`--w:${CHAPTERS[i + 1] - CHAPTERS[i]}`}>
+            <button type="button" class="fh__seg" data-seg={i} aria-label={`Play scene ${i + 1}: ${s.label}`}>
+              <span class="fh__bar"><span class="fh__fill" data-fill /></span>
+              <span class="fh__seg-label fm-mono">{s.label}</span>
+            </button>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="fh__time fm-mono" aria-hidden="true"><span data-film-time>00:00</span> / {fmt(DURATION)}</p>
+  </div>
+
+  <a href="#scenes" class="fh__scroll fm-mono" aria-label="Skip the film, go to services">Scroll</a>
+</section>
+
+<script>
+  import { createFilm, CHAPTERS, DURATION } from '../../scripts/film-scene';
+
+  const root = document.querySelector<HTMLElement>('[data-film]');
+  const canvas = root?.querySelector<HTMLCanvasElement>('[data-film-canvas]');
+  if (root && canvas) {
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const caps = [...root.querySelectorAll<HTMLElement>('[data-cap]')];
+    const fills = [...root.querySelectorAll<HTMLElement>('[data-fill]')];
+    const segs = [...root.querySelectorAll<HTMLButtonElement>('[data-seg]')];
+    const playBtn = root.querySelector<HTMLButtonElement>('[data-film-play]')!;
+    const timeEl = root.querySelector<HTMLElement>('[data-film-time]')!;
+    const cut = root.querySelector<HTMLElement>('[data-film-cut]')!;
+    const player = root.querySelector<HTMLElement>('[data-film-player]')!;
+    let current = -1;
+
+    const showChapter = (ch: number, flash: boolean) => {
+      if (ch === current) return;
+      current = ch;
+      caps.forEach((el, i) => {
+        el.classList.toggle('is-on', i === ch);
+        if (i === ch) el.removeAttribute('aria-hidden');
+        else el.setAttribute('aria-hidden', 'true');
+      });
+      segs.forEach((b, i) => b.classList.toggle('is-current', i === ch));
+      if (flash && !reduced) {
+        cut.classList.remove('is-cut');
+        void cut.offsetWidth;
+        cut.classList.add('is-cut');
+      }
+    };
+
+    const onTime = (t: number, ch: number) => {
+      showChapter(ch, true);
+      fills.forEach((f, i) => {
+        const p = Math.min(1, Math.max(0, (t - CHAPTERS[i]) / (CHAPTERS[i + 1] - CHAPTERS[i])));
+        f.style.transform = `scaleX(${p})`;
+      });
+      timeEl.textContent = `00:${String(Math.floor(t)).padStart(2, '0')}`;
+    };
+
+    const start = reduced ? CHAPTERS[3] + 5.5 : 0;
+    const film = createFilm({ canvas, onTime, autoplay: !reduced, startAt: start });
+
+    if (film) {
+      (root as HTMLElement & { film?: typeof film }).film = film; // handy for testing in devtools
+      root.classList.add('is-live');
+      player.hidden = false;
+      const sync = () => {
+        root.classList.toggle('is-paused', !film.playing);
+        playBtn.setAttribute('aria-label', film.playing ? 'Pause the film' : 'Play the film');
+      };
+      sync();
+      playBtn.addEventListener('click', () => {
+        if (film.playing) film.pause();
+        else film.play();
+        sync();
+      });
+      segs.forEach((b, i) =>
+        b.addEventListener('click', () => {
+          film.seek(CHAPTERS[i] + 0.01);
+          if (!film.playing && !reduced) film.play();
+          sync();
+        }),
+      );
+      // Space/K toggles the film while focus is inside the player.
+      player.addEventListener('keydown', (e) => {
+        if (e.key === 'k' || e.key === 'K') {
+          e.preventDefault();
+          playBtn.click();
+        }
+      });
+      void DURATION;
+    }
+
+    // Fade the captions as the page scrolls over the film.
+    const copy = root.querySelector<HTMLElement>('.fh__copy');
+    const onScroll = () => {
+      const s = Math.min(1, scrollY / (innerHeight * 0.8));
+      copy?.style.setProperty('--s', s.toFixed(3));
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
+</script>
+
+<style>
+  .fh {
+    position: relative;
+    isolation: isolate;
+    min-height: max(36rem, 100svh);
+    display: grid;
+    grid-template-rows: 1fr auto;
+    overflow: hidden;
+    background: var(--fm-night);
+    color: var(--fm-fg);
+  }
+  .fh__poster,
+  .fh__canvas,
+  .fh__shade,
+  .fh__cut {
+    position: absolute;
+    inset: 0;
+  }
+  .fh__poster {
+    z-index: -3;
+    background:
+      radial-gradient(120% 60% at 70% 62%, #d9786a 0%, transparent 55%),
+      linear-gradient(to bottom, #0d0f24 0%, #3b2a5c 52%, #8d4f6a 66%, #1b1a24 66.2%, #0c0c12 100%);
+  }
+  .fh__canvas {
+    z-index: -2;
+    width: 100%;
+    height: 100%;
+    display: block;
+    opacity: 0;
+    transition: opacity 1.2s var(--ease-out);
+  }
+  .fh.is-live .fh__canvas {
+    opacity: 1;
+  }
+  .fh__shade {
+    z-index: -1;
+    background:
+      linear-gradient(to top, rgb(8 8 14 / 0.92) 0%, rgb(8 8 14 / 0.55) 30%, transparent 58%),
+      linear-gradient(to right, rgb(8 8 14 / 0.55) 0%, transparent 55%);
+    pointer-events: none;
+  }
+  .fh__cut {
+    z-index: 2;
+    background: #000;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .fh__cut.is-cut {
+    animation: fh-cut 0.42s ease-out;
+  }
+  @keyframes fh-cut {
+    0% { opacity: 0.85; }
+    100% { opacity: 0; }
+  }
+
+  .fh__copy {
+    --s: 0;
+    align-self: end;
+    width: 100%;
+    max-width: calc(var(--fm-max) + var(--fm-gutter) * 2);
+    margin-inline: auto;
+    padding: calc(var(--header-h) + 2rem) var(--fm-gutter) 1.75rem;
+    opacity: calc(1 - var(--s) * 1.1);
+    transform: translateY(calc(var(--s) * -2.5rem));
+  }
+  .fh__caps {
+    display: grid;
+    max-width: 40rem;
+  }
+  .fh__cap {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transform: translateY(0.75rem);
+    transition:
+      opacity 0.6s var(--ease-out),
+      transform 0.8s var(--ease-out);
+    pointer-events: none;
+  }
+  .fh__cap.is-on {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+    transition-delay: 0.15s;
+  }
+  .fh__scene {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.65rem;
+    margin-bottom: 1rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--fm-fg);
+  }
+  .fh__title {
+    font-size: clamp(3.1rem, 1.6rem + 6vw, 6.4rem);
+    line-height: 0.95;
+    letter-spacing: -0.02em;
+    text-shadow: 0 2px 30px rgb(0 0 0 / 0.35);
+  }
+  .fh__title em {
+    padding-right: 0.06em;
+  }
+  .fh__text {
+    margin-top: 1.25rem;
+    max-width: 32rem;
+    font-size: clamp(1.0625rem, 1rem + 0.3vw, 1.2rem);
+    color: color-mix(in srgb, var(--fm-fg) 88%, transparent);
+    text-wrap: pretty;
+  }
+  .fh__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+
+  /* player */
+  .fh__player {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    width: 100%;
+    max-width: calc(var(--fm-max) + var(--fm-gutter) * 2);
+    margin-inline: auto;
+    padding: 0.5rem var(--fm-gutter) calc(1.5rem + 3.5rem);
+  }
+  @media (min-width: 48rem) {
+    .fh__player {
+      grid-template-columns: auto 1fr auto;
+      padding-bottom: 1.75rem;
+      padding-left: calc(var(--fm-gutter) + 15rem);
+    }
+  }
+  .fh__play {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    border-radius: 50%;
+    border: 1px solid color-mix(in srgb, var(--fm-fg) 45%, transparent);
+    background: rgb(10 10 16 / 0.4);
+    color: var(--fm-fg);
+    backdrop-filter: blur(6px);
+    transition:
+      border-color 0.2s,
+      background-color 0.2s,
+      transform 0.3s var(--ease-out);
+  }
+  .fh__play:hover {
+    border-color: var(--fm-amber);
+    background: rgb(255 184 102 / 0.12);
+    transform: scale(1.06);
+  }
+  .fh__ico {
+    width: 1.2rem;
+    height: 1.2rem;
+  }
+  .fh__ico--play,
+  .fh.is-paused .fh__ico--pause {
+    display: none;
+  }
+  .fh.is-paused .fh__ico--play {
+    display: block;
+  }
+  .fh__segs {
+    display: flex;
+    gap: 0.4rem;
+    margin: 0;
+    min-width: 0;
+  }
+  .fh__segs li {
+    flex: var(--w) 1 0;
+    min-width: 0;
+  }
+  .fh__seg {
+    display: grid;
+    gap: 0.55rem;
+    width: 100%;
+    padding: 0.6rem 0;
+    border: 0;
+    background: none;
+    color: var(--fm-dim);
+    text-align: left;
+  }
+  .fh__bar {
+    display: block;
+    height: 3px;
+    border-radius: 3px;
+    background: rgb(243 239 230 / 0.2);
+    overflow: hidden;
+  }
+  .fh__fill {
+    display: block;
+    height: 100%;
+    background: var(--fm-amber);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .fh__seg-label {
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    transition: color 0.2s;
+  }
+  .fh__seg:hover .fh__seg-label,
+  .fh__seg.is-current .fh__seg-label {
+    color: var(--fm-amber);
+  }
+  .fh__time {
+    display: none;
+    font-size: 0.8125rem;
+    color: var(--fm-soft);
+    font-variant-numeric: tabular-nums;
+  }
+  @media (min-width: 48rem) {
+    .fh__time {
+      display: block;
+    }
+  }
+  @media (max-width: 30rem) {
+    .fh__seg-label {
+      font-size: 0.5625rem;
+      letter-spacing: 0.08em;
+    }
+  }
+
+  .fh__scroll {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .fh__scroll {
+      position: absolute;
+      right: var(--fm-gutter);
+      bottom: 7rem;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      writing-mode: vertical-rl;
+      font-size: 0.6875rem;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: var(--fm-soft);
+      text-decoration: none;
+    }
+    .fh__scroll::before {
+      content: '';
+      width: 1px;
+      height: 3.5rem;
+      background: linear-gradient(var(--fm-soft), transparent);
+    }
+    .fh__scroll:hover {
+      color: var(--fm-amber);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fh__cap,
+    .fh__canvas {
+      transition: none;
+    }
+    .fh__copy {
+      opacity: 1;
+      transform: none;
+    }
+  }
+</style>

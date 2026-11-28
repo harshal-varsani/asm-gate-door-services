@@ -39,6 +39,7 @@ Everything unconfirmed is a visible `[placeholder]` (dotted underline on the pag
 | Home page FAQs | `src/data/faqs.ts` |
 | Every photo (one registry) | `src/data/images.ts` |
 | Home hero reel (slides, captions, links) | `src/components/home/HomeHero.astro` |
+| "Film" alternative design at `/film/` (content, 3D film, layout) | `src/data/film.ts`, `src/scripts/film-scene.ts`, `src/pages/film.astro`, `src/layouts/FilmLayout.astro` |
 | Projects gallery | `src/content/projects/*.md` |
 | Testimonials (hidden until real ones are added) | `src/data/testimonials.ts` |
 | Service-area landing pages (local SEO) | `src/data/service-areas.ts` |

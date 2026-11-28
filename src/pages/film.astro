@@ -1,0 +1,961 @@
+---
+/**
+ * "Film" design: an alternative, cinematic version of the ASM website.
+ * Same business details (src/config/site.ts), same quote form, same services;
+ * a different way of telling it. Content lives in src/data/film.ts.
+ */
+import FilmLayout from '../layouts/FilmLayout.astro';
+import FilmHero from '../components/film/FilmHero.astro';
+import QuoteForm from '../components/QuoteForm.astro';
+import { site, isPlaceholder } from '../config/site';
+import { homeFaqs } from '../data/faqs';
+import { filmServices, filmSymptoms, symptomLevels, filmFrames, filmReel } from '../data/film';
+
+const c = site.contact;
+const ph = (v: string) => (isPlaceholder(v) ? 'placeholder-text' : undefined);
+const pad = (n: number) => String(n).padStart(2, '0');
+const area = site.serviceArea;
+---
+
+<FilmLayout
+  title={`${site.name} | Film design`}
+  description={`${site.name}: gate and garage door repairs, automation, servicing and new installations, told as a short film.`}
+>
+  <FilmHero />
+
+  <!-- reel strip -->
+  <div class="reel" aria-hidden="true">
+    <div class="reel__track">
+      {[0, 1].map(() => (
+        <ul role="list" class="reel__list">
+          {filmReel.map((r) => <li>{r}</li>)}
+        </ul>
+      ))}
+    </div>
+  </div>
+
+  <!-- SCENE LIST: services -->
+  <section class="fm-sec" id="scenes" aria-labelledby="scenes-title">
+    <div class="fm-wrap">
+      <header class="fm-head" data-fm-reveal>
+        <p class="fm-kicker">Scene list</p>
+        <h2 id="scenes-title">Eight scenes, <em>one crew.</em></h2>
+        <p>Homes and commercial sites, manual and automated. If it slides, swings, rolls or tilts, it can be repaired, serviced or replaced.</p>
+      </header>
+      <ol role="list" class="scenes">
+        {
+          filmServices.map((s, i) => (
+            <li class="scene" data-fm-reveal style={`--d:${(i % 2) * 0.08}s`}>
+              <span class="scene__no fm-mono">SC {pad(i + 1)}</span>
+              <div class="scene__body">
+                <h3 class="scene__title">{s.title}</h3>
+                <p class="scene__text">{s.text}</p>
+                <a class="scene__more" href={s.href}>
+                  More about this <span class="visually-hidden">: {s.title}</span>
+                </a>
+              </div>
+              <a href="#callsheet" class="scene__book fm-mono" data-book={s.service} data-book-note={s.title}>
+                Book <span class="visually-hidden">{s.title}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+              </a>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- REWIND: symptom checker -->
+  <section class="fm-sec fm-sec--panel" id="rewind" aria-labelledby="rewind-title">
+    <div class="fm-wrap">
+      <header class="fm-head" data-fm-reveal>
+        <p class="fm-kicker">Rewind</p>
+        <h2 id="rewind-title">What’s it <em>doing?</em></h2>
+        <p>Pick the symptom for the likely causes, whether it’s safe to keep using, and what the fix usually involves.</p>
+      </header>
+
+      <div class="diag" data-diag>
+        <div class="diag__takes" role="tablist" aria-label="Symptoms">
+          {
+            filmSymptoms.map((s, i) => (
+              <button
+                type="button"
+                class="diag__take"
+                role="tab"
+                id={`take-${i}`}
+                aria-controls={`note-${i}`}
+                aria-selected={i === 0 ? 'true' : 'false'}
+                tabindex={i === 0 ? 0 : -1}
+              >
+                <span class="diag__take-no fm-mono">Take {pad(i + 1)}</span>
+                {s.label}
+              </button>
+            ))
+          }
+        </div>
+        {
+          filmSymptoms.map((s, i) => {
+            const lv = symptomLevels[s.level];
+            return (
+              <div class="diag__note" role="tabpanel" id={`note-${i}`} aria-labelledby={`take-${i}`} hidden={i !== 0} tabindex="0">
+                <div class="diag__head">
+                  <h3 class="diag__title">{s.label}</h3>
+                  <p class:list={['diag__level fm-mono', `is-${lv.tone}`]}>
+                    <span aria-hidden="true" />
+                    {lv.label}
+                  </p>
+                </div>
+                <div class="diag__grid">
+                  <div>
+                    <p class="diag__label fm-mono">Likely causes</p>
+                    <ul role="list" class="diag__causes">
+                      {s.causes.map((cause) => <li>{cause}</li>)}
+                    </ul>
+                  </div>
+                  <div class="diag__side">
+                    <p class="diag__label fm-mono">Right now</p>
+                    <p class="diag__advice">{s.advice}</p>
+                    <p class="diag__label fm-mono">What the fix involves</p>
+                    <p>{s.fix}</p>
+                    <a href="#callsheet" class="fm-btn fm-btn--sm diag__cta" data-book="repair" data-book-note={`Symptom: ${s.label}`}>
+                      Book this repair
+                    </a>
+                  </div>
+                </div>
+              </div>
+            );
+          })
+        }
+        <p class="diag__note-small">General guidance only. If a door or gate seems unsafe, stop using it and keep clear until it’s checked.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORYBOARD: process -->
+  <section class="fm-sec" id="storyboard" aria-labelledby="story-title">
+    <div class="fm-wrap">
+      <header class="fm-head" data-fm-reveal>
+        <p class="fm-kicker">Storyboard</p>
+        <h2 id="story-title">Four frames from stuck <em>to sorted.</em></h2>
+      </header>
+      <ol role="list" class="frames">
+        {
+          filmFrames.map((f, i) => (
+            <li class="frame" data-fm-reveal style={`--d:${i * 0.08}s`}>
+              <div class="frame__shot" aria-hidden="true">
+                <span class="frame__no fm-mono">{pad(i + 1)}</span>
+                <svg viewBox="0 0 120 80" class="frame__art">
+                  {f.icon === 'phone' && (
+                    <g>
+                      <rect x="44" y="14" width="26" height="46" rx="5" />
+                      <path d="M53 52h8" />
+                      <path class="a" d="M78 28c4 4 4 12 0 16M84 23c7 7 7 19 0 26" />
+                    </g>
+                  )}
+                  {f.icon === 'search' && (
+                    <g>
+                      <path d="M28 62V36l24-14 24 14v26" />
+                      <path d="M36 62V44h32v18M36 50h32M36 56h32" />
+                      <circle class="a" cx="82" cy="30" r="9" />
+                      <path class="a" d="M88.5 36.5 96 44" />
+                    </g>
+                  )}
+                  {f.icon === 'quote' && (
+                    <g>
+                      <rect x="38" y="12" width="40" height="52" rx="3" />
+                      <path d="M46 24h24M46 32h24M46 40h16" />
+                      <path class="a" d="M46 52h10M74 46l6 6 12-14" />
+                    </g>
+                  )}
+                  {f.icon === 'check' && (
+                    <g>
+                      <path d="M60 10 84 19v17c0 15-10 26-24 32-14-6-24-17-24-32V19z" />
+                      <path class="a" d="m49 38 8 8 15-16" />
+                    </g>
+                  )}
+                </svg>
+              </div>
+              <h3 class="frame__title">{f.title}</h3>
+              <p class="frame__text">{f.text}</p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </section>
+
+  <!-- THE PROMISE: trust facts (placeholders stay visible until confirmed) -->
+  <section class="fm-sec promise" aria-labelledby="promise-title">
+    <div class="fm-wrap">
+      <div class="promise__head" data-fm-reveal>
+        <p class="fm-kicker">The promise</p>
+        <h2 id="promise-title"><em>Straight advice.</em> Proper workmanship. On every job.</h2>
+        <p>We tell you what’s wrong, what it will take to fix, and whether a repair is worth it before anything is done.</p>
+      </div>
+      <ul role="list" class="promise__facts">
+        {
+          site.trust.map((t, i) => (
+            <li data-fm-reveal style={`--d:${(i % 3) * 0.07}s`}>
+              <span class="promise__no fm-mono">{pad(i + 1)}</span>
+              <span class:list={['promise__fact', { 'placeholder-text': t.placeholder }]}>{t.label}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- ON LOCATION -->
+  <section class="fm-sec fm-sec--panel location" aria-labelledby="loc-title">
+    <div class="fm-wrap location__grid">
+      <header class="fm-head" data-fm-reveal>
+        <p class="fm-kicker">On location</p>
+        <h2 id="loc-title">On the road across <em class={ph(area.primary)}>{area.primary}.</em></h2>
+        <p>{area.note}</p>
+      </header>
+      <ul role="list" class="location__list" data-fm-reveal>
+        {
+          area.regions.map((r, i) => (
+            <li>
+              <span class="fm-mono">{pad(i + 1)}</span>
+              <span class={ph(r)}>{r}</span>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <!-- DIRECTOR'S COMMENTARY: FAQs -->
+  <section class="fm-sec" id="commentary" aria-labelledby="faq-title">
+    <div class="fm-wrap commentary">
+      <header class="fm-head" data-fm-reveal>
+        <p class="fm-kicker">Director’s commentary</p>
+        <h2 id="faq-title">Good questions, <em>short answers.</em></h2>
+      </header>
+      <div class="faq" data-fm-reveal>
+        {
+          homeFaqs.map((f) => (
+            <details class="faq__item">
+              <summary>
+                <span>{f.q}</span>
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="1.6" /></svg>
+              </summary>
+              <p class={ph(f.a)}>{f.a}</p>
+            </details>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- CALL SHEET: quote form on a paper sheet -->
+  <section class="fm-sec callsheet" id="callsheet" aria-labelledby="quote-title">
+    <div class="fm-wrap callsheet__grid">
+      <div class="callsheet__intro" data-fm-reveal>
+        <p class="fm-kicker">Call sheet</p>
+        <h2>Tell us what’s wrong. <em>We’ll take it from there.</em></h2>
+        <p>Send the details (photos help) and we’ll come back to you with next steps. For anything urgent, calling is fastest.</p>
+        <a href={c.phoneHref} class="callsheet__phone">
+          <span class="fm-mono">Call</span>
+          <span class={ph(c.phoneDisplay)}>{c.phoneDisplay}</span>
+        </a>
+        <p class="callsheet__email">
+          Or email <a href={`mailto:${c.email}`} class={ph(c.email)}>{c.email}</a>
+        </p>
+      </div>
+      <div class="callsheet__paper on-light" data-fm-reveal style="--d:0.1s">
+        <div class="callsheet__strip fm-mono" aria-hidden="true">
+          <span>Production: ASM</span><span>Call sheet</span><span>Take 01</span>
+        </div>
+        <QuoteForm id="quote" heading="Request a quote" />
+      </div>
+    </div>
+  </section>
+</FilmLayout>
+
+<script>
+  // Symptom tabs (arrow keys move between takes).
+  const diag = document.querySelector<HTMLElement>('[data-diag]');
+  if (diag) {
+    const tabs = [...diag.querySelectorAll<HTMLButtonElement>('[role="tab"]')];
+    const panels = [...diag.querySelectorAll<HTMLElement>('[role="tabpanel"]')];
+    const select = (i: number, focus = false) => {
+      tabs.forEach((t, k) => {
+        t.setAttribute('aria-selected', String(k === i));
+        t.tabIndex = k === i ? 0 : -1;
+      });
+      panels.forEach((p, k) => (p.hidden = k !== i));
+      if (focus) tabs[i].focus();
+      tabs[i].scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    };
+    tabs.forEach((t, i) => {
+      t.addEventListener('click', () => select(i));
+      t.addEventListener('keydown', (e) => {
+        const n = tabs.length;
+        if (e.key === 'ArrowRight') select((i + 1) % n, true);
+        else if (e.key === 'ArrowLeft') select((i - 1 + n) % n, true);
+        else if (e.key === 'Home') select(0, true);
+        else if (e.key === 'End') select(n - 1, true);
+        else return;
+        e.preventDefault();
+      });
+    });
+  }
+
+  // "Book" links preselect the service and note what it's about in the form.
+  document.querySelectorAll<HTMLAnchorElement>('[data-book]').forEach((a) =>
+    a.addEventListener('click', () => {
+      const form = document.querySelector<HTMLFormElement>('#callsheet form');
+      if (!form) return;
+      const radio = form.querySelector<HTMLInputElement>(`input[name="service"][data-value="${CSS.escape(a.dataset.book || '')}"]`);
+      if (radio) {
+        radio.checked = true;
+        radio.dispatchEvent(new Event('change', { bubbles: true }));
+      }
+      const msg = form.querySelector<HTMLTextAreaElement>('textarea[name="message"]');
+      const note = a.dataset.bookNote;
+      if (msg && note && !msg.value.includes(note)) {
+        msg.value = msg.value ? `${note}\n${msg.value}` : `${note}\n`;
+        msg.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    }),
+  );
+</script>
+
+<style>
+  /* reel strip */
+  .reel {
+    overflow: hidden;
+    border-block: 1px solid var(--fm-line);
+    background: var(--fm-night);
+    padding-block: 1.1rem;
+  }
+  .reel__track {
+    display: flex;
+    width: max-content;
+    animation: reel 48s linear infinite;
+  }
+  .reel__list {
+    display: flex;
+    margin: 0;
+  }
+  .reel__list li {
+    display: flex;
+    align-items: center;
+    gap: 2.25rem;
+    padding-right: 2.25rem;
+    font-family: var(--fm-serif);
+    font-style: italic;
+    font-size: clamp(1.4rem, 1.1rem + 1vw, 2rem);
+    color: var(--fm-soft);
+    white-space: nowrap;
+  }
+  .reel__list li::after {
+    content: '';
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 50%;
+    background: var(--fm-amber);
+  }
+  @keyframes reel {
+    to { transform: translateX(-50%); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .reel__track {
+      animation: none;
+    }
+  }
+
+  /* scene list */
+  .scenes {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--fm-line);
+  }
+  @media (min-width: 56rem) {
+    .scenes {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 3rem;
+    }
+  }
+  .scene {
+    position: relative;
+    display: grid;
+    grid-template-columns: 4.25rem minmax(0, 1fr) auto;
+    gap: 0.25rem 1rem;
+    align-items: start;
+    padding: 1.75rem 0;
+    border-bottom: 1px solid var(--fm-line);
+    transition: background-color 0.3s;
+  }
+  .scene::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -1px;
+    height: 1px;
+    background: var(--fm-amber);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.6s var(--ease-out);
+  }
+  .scene:hover::before,
+  .scene:focus-within::before {
+    transform: scaleX(1);
+  }
+  .scene__no {
+    padding-top: 0.45rem;
+    font-size: 0.75rem;
+    color: var(--fm-dim);
+    transition: color 0.3s;
+  }
+  .scene:hover .scene__no {
+    color: var(--fm-amber);
+  }
+  .scene__title {
+    font-size: clamp(1.75rem, 1.4rem + 1.2vw, 2.35rem);
+    transition: transform 0.5s var(--ease-out);
+  }
+  .scene:hover .scene__title {
+    transform: translateX(0.35rem);
+  }
+  .scene__text {
+    margin-top: 0.6rem;
+    color: var(--fm-soft);
+    max-width: 34rem;
+  }
+  .scene__more {
+    display: inline-block;
+    margin-top: 0.75rem;
+    font-size: 0.9375rem;
+    color: var(--fm-fg);
+    text-decoration-color: color-mix(in srgb, var(--fm-amber) 60%, transparent);
+  }
+  .scene__more:hover {
+    color: var(--fm-amber);
+  }
+  .scene__book {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-top: 0.3rem;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid var(--fm-line-2);
+    border-radius: 999px;
+    font-size: 0.75rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fm-fg);
+    text-decoration: none;
+    transition:
+      background-color 0.25s,
+      border-color 0.25s,
+      color 0.25s;
+  }
+  .scene__book svg {
+    width: 0.95rem;
+    height: 0.95rem;
+    transition: transform 0.35s var(--ease-out);
+  }
+  .scene__book:hover {
+    background: var(--fm-amber);
+    border-color: var(--fm-amber);
+    color: var(--fm-amber-ink);
+  }
+  .scene__book:hover svg {
+    transform: translateX(3px);
+  }
+  @media (max-width: 30rem) {
+    .scene {
+      grid-template-columns: minmax(0, 1fr) auto;
+    }
+    .scene__no {
+      grid-column: 1 / -1;
+      padding: 0;
+    }
+  }
+
+  /* symptom checker */
+  .diag__takes {
+    display: flex;
+    gap: 0.5rem;
+    overflow-x: auto;
+    padding: 0.25rem 0.1rem 1rem;
+    margin-bottom: 0.75rem;
+    scrollbar-width: thin;
+    scroll-snap-type: x proximity;
+  }
+  .diag__take {
+    flex: none;
+    display: grid;
+    gap: 0.2rem;
+    padding: 0.7rem 1.15rem;
+    border: 1px solid var(--fm-line-2);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--fm-soft);
+    font-family: var(--fm-serif);
+    font-size: 1.15rem;
+    line-height: 1.1;
+    text-align: left;
+    scroll-snap-align: start;
+    transition:
+      border-color 0.2s,
+      color 0.2s,
+      background-color 0.2s;
+  }
+  .diag__take-no {
+    font-family: var(--fm-mono);
+    font-size: 0.625rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fm-dim);
+  }
+  .diag__take:hover {
+    border-color: var(--fm-soft);
+    color: var(--fm-fg);
+  }
+  .diag__take[aria-selected='true'] {
+    border-color: var(--fm-amber);
+    background: rgb(255 184 102 / 0.1);
+    color: var(--fm-amber);
+    font-style: italic;
+  }
+  .diag__take[aria-selected='true'] .diag__take-no {
+    color: var(--fm-amber);
+  }
+  .diag__note {
+    padding: clamp(1.5rem, 1rem + 2vw, 2.75rem);
+    border: 1px solid var(--fm-line-2);
+    border-top: 2px solid var(--fm-amber);
+    border-radius: var(--fm-radius);
+    background: linear-gradient(180deg, var(--fm-panel-2), var(--fm-panel));
+    animation: diag-in 0.5s var(--ease-out);
+  }
+  @keyframes diag-in {
+    from { opacity: 0; transform: translateY(0.5rem); }
+  }
+  .diag__head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+    margin-bottom: 1.75rem;
+  }
+  .diag__title {
+    font-size: clamp(2rem, 1.6rem + 1.5vw, 2.8rem);
+  }
+  .diag__level {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.4rem 0.85rem;
+    border: 1px solid currentColor;
+    border-radius: 999px;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .diag__level span {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 50%;
+    background: currentColor;
+  }
+  .diag__level.is-go { color: var(--fm-green); }
+  .diag__level.is-care { color: var(--fm-amber); }
+  .diag__level.is-stop { color: #ff7b6e; }
+  .diag__grid {
+    display: grid;
+    gap: 2rem;
+  }
+  @media (min-width: 56rem) {
+    .diag__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 3.5rem;
+    }
+  }
+  .diag__label {
+    margin-bottom: 0.75rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--fm-dim);
+  }
+  .diag__causes {
+    margin: 0;
+  }
+  .diag__causes li {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.8rem 0;
+    border-bottom: 1px solid var(--fm-line);
+  }
+  .diag__causes li::before {
+    content: '+';
+    color: var(--fm-amber);
+    font-family: var(--fm-mono);
+  }
+  .diag__side {
+    display: grid;
+    align-content: start;
+    gap: 0;
+    color: var(--fm-soft);
+  }
+  .diag__side .diag__label:not(:first-child) {
+    margin-top: 1.5rem;
+  }
+  .diag__advice {
+    color: var(--fm-fg);
+    font-size: 1.125rem;
+  }
+  .diag__cta {
+    justify-self: start;
+    margin-top: 1.75rem;
+  }
+  .diag__note-small {
+    margin-top: 1rem;
+    font-size: 0.875rem;
+    color: var(--fm-dim);
+  }
+
+  /* storyboard */
+  .frames {
+    display: grid;
+    gap: 2.5rem 1.5rem;
+    margin: 0;
+  }
+  @media (min-width: 40rem) {
+    .frames {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .frames {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+  .frame__shot {
+    position: relative;
+    aspect-ratio: 3 / 2;
+    display: grid;
+    place-items: center;
+    margin-bottom: 1.25rem;
+    border: 1px solid var(--fm-line-2);
+    border-radius: var(--fm-radius);
+    background:
+      radial-gradient(80% 70% at 50% 40%, rgb(255 184 102 / 0.06), transparent 70%),
+      var(--fm-panel);
+    overflow: hidden;
+    transition:
+      border-color 0.4s,
+      transform 0.6s var(--ease-out);
+  }
+  .frame__shot::after {
+    /* film perforations */
+    content: '';
+    position: absolute;
+    inset: 0.55rem 0.6rem auto;
+    height: 0.35rem;
+    background: radial-gradient(circle, var(--fm-line-2) 0.14rem, transparent 0.16rem) 0 0 / 0.9rem 0.35rem repeat-x;
+    opacity: 0.8;
+  }
+  .frame:hover .frame__shot {
+    border-color: color-mix(in srgb, var(--fm-amber) 60%, transparent);
+    transform: translateY(-4px);
+  }
+  .frame__no {
+    position: absolute;
+    left: 0.85rem;
+    bottom: 0.7rem;
+    font-size: 0.6875rem;
+    color: var(--fm-dim);
+  }
+  .frame__art {
+    width: 62%;
+    fill: none;
+    stroke: var(--fm-fg);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .frame__art .a {
+    stroke: var(--fm-amber);
+    stroke-dasharray: 60;
+    stroke-dashoffset: 0;
+    transition: stroke-dashoffset 0.9s var(--ease-out);
+  }
+  .frame:hover .frame__art .a {
+    animation: draw 1s var(--ease-out);
+  }
+  @keyframes draw {
+    from { stroke-dashoffset: 60; }
+  }
+  .frame__title {
+    font-size: 1.75rem;
+  }
+  .frame__text {
+    margin-top: 0.5rem;
+    color: var(--fm-soft);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .frame:hover .frame__shot {
+      transform: none;
+    }
+    .frame:hover .frame__art .a {
+      animation: none;
+    }
+  }
+
+  /* promise */
+  .promise__head {
+    display: grid;
+    justify-items: center;
+    gap: 1.25rem;
+    max-width: 50rem;
+    margin: 0 auto clamp(3rem, 2rem + 3vw, 5rem);
+    text-align: center;
+  }
+  .promise__head .fm-kicker::after {
+    content: '';
+    width: 1.75rem;
+    height: 1px;
+    background: currentColor;
+  }
+  .promise__head h2 {
+    font-size: clamp(2.6rem, 1.5rem + 4.4vw, 5.25rem);
+    text-wrap: balance;
+  }
+  .promise__head p:not(.fm-kicker) {
+    max-width: 36rem;
+    color: var(--fm-soft);
+    font-size: 1.125rem;
+  }
+  .promise__facts {
+    display: grid;
+    margin: 0;
+    border-top: 1px solid var(--fm-line);
+  }
+  @media (min-width: 40rem) {
+    .promise__facts {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .promise__facts {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  .promise__facts li {
+    display: grid;
+    gap: 0.75rem;
+    padding: 2rem 1.5rem 2rem 0;
+    border-bottom: 1px solid var(--fm-line);
+  }
+  .promise__no {
+    font-size: 0.75rem;
+    color: var(--fm-amber);
+  }
+  .promise__fact {
+    font-family: var(--fm-serif);
+    font-size: clamp(1.6rem, 1.3rem + 1vw, 2.2rem);
+    line-height: 1.1;
+    justify-self: start;
+  }
+
+  /* location */
+  .location__grid {
+    display: grid;
+    gap: 1rem 4rem;
+    align-items: end;
+  }
+  @media (min-width: 56rem) {
+    .location__grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    }
+    .location__grid .fm-head {
+      margin-bottom: 0;
+    }
+  }
+  .location__list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--fm-line);
+  }
+  .location__list li {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    padding: 1rem 0;
+    border-bottom: 1px solid var(--fm-line);
+    font-family: var(--fm-serif);
+    font-size: 1.5rem;
+  }
+  .location__list .fm-mono {
+    font-size: 0.6875rem;
+    color: var(--fm-amber);
+    font-family: var(--fm-mono);
+  }
+
+  /* commentary */
+  .commentary {
+    display: grid;
+    gap: 0 4rem;
+  }
+  @media (min-width: 64rem) {
+    .commentary {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+      align-items: start;
+    }
+  }
+  .faq {
+    border-top: 1px solid var(--fm-line);
+  }
+  .faq__item {
+    border-bottom: 1px solid var(--fm-line);
+  }
+  .faq__item summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1.5rem;
+    padding: 1.4rem 0;
+    cursor: pointer;
+    list-style: none;
+    font-family: var(--fm-serif);
+    font-size: clamp(1.35rem, 1.2rem + 0.6vw, 1.75rem);
+    line-height: 1.2;
+    transition: color 0.2s;
+  }
+  .faq__item summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq__item summary:hover {
+    color: var(--fm-amber);
+  }
+  .faq__item summary svg {
+    flex: none;
+    width: 1.4rem;
+    height: 1.4rem;
+    margin-top: 0.2rem;
+    color: var(--fm-amber);
+    transition: transform 0.4s var(--ease-out);
+  }
+  .faq__item[open] summary svg {
+    transform: rotate(45deg);
+  }
+  .faq__item p {
+    padding: 0 3rem 1.6rem 0;
+    color: var(--fm-soft);
+    max-width: 44rem;
+  }
+
+  /* call sheet */
+  .callsheet {
+    background:
+      radial-gradient(60% 50% at 15% 30%, rgb(255 184 102 / 0.08), transparent 70%),
+      var(--fm-bg);
+  }
+  .callsheet__grid {
+    display: grid;
+    gap: 3rem 4rem;
+    align-items: start;
+  }
+  @media (min-width: 64rem) {
+    .callsheet__grid {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+    }
+    .callsheet__intro {
+      position: sticky;
+      top: calc(var(--header-h) + 2rem);
+    }
+  }
+  .callsheet__intro {
+    display: grid;
+    gap: 1.25rem;
+  }
+  .callsheet__intro h2 {
+    font-size: clamp(2.6rem, 1.6rem + 4vw, 4.5rem);
+    text-wrap: balance;
+  }
+  .callsheet__intro > p:not(.fm-kicker) {
+    color: var(--fm-soft);
+    font-size: 1.125rem;
+  }
+  .callsheet__phone {
+    display: grid;
+    gap: 0.25rem;
+    margin-top: 1rem;
+    color: var(--fm-fg);
+    text-decoration: none;
+    font-family: var(--fm-serif);
+    font-size: clamp(2.2rem, 1.8rem + 1.6vw, 3.2rem);
+    line-height: 1;
+  }
+  .callsheet__phone .fm-mono {
+    font-family: var(--fm-mono);
+    font-size: 0.75rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--fm-amber);
+  }
+  .callsheet__phone:hover {
+    color: var(--fm-amber);
+  }
+  .callsheet__email {
+    color: var(--fm-soft);
+  }
+  .callsheet__email a {
+    color: var(--fm-fg);
+  }
+  .callsheet__paper {
+    position: relative;
+    padding: clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+    padding-top: 0;
+    border-radius: var(--fm-radius);
+    background: #f4f0e6;
+    color: #17181a;
+    box-shadow:
+      0 40px 80px -40px rgb(0 0 0 / 0.8),
+      0 0 0 1px rgb(255 255 255 / 0.04);
+    font-family: var(--fm-sans);
+    transform: rotate(-0.4deg);
+  }
+  .callsheet__strip {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-inline: calc(clamp(1.25rem, 0.8rem + 2vw, 2.5rem) * -1);
+    margin-bottom: 1.5rem;
+    padding: 0.8rem clamp(1.25rem, 0.8rem + 2vw, 2.5rem);
+    border-bottom: 1px dashed #c9c2b2;
+    border-radius: var(--fm-radius) var(--fm-radius) 0 0;
+    background: #ebe5d6;
+    font-size: 0.6875rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #6b6456;
+  }
+  .callsheet__paper :global(.qf) {
+    --bg: #f4f0e6;
+    --surface: #fbf9f4;
+  }
+  .callsheet__paper :global(.qf__title) {
+    font-family: var(--fm-serif);
+    font-weight: 400;
+    font-size: 2.2rem;
+    letter-spacing: 0;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .callsheet__paper {
+      transform: none;
+    }
+  }
+  @media (max-width: 30rem) {
+    .callsheet__strip span:nth-child(3) {
+      display: none;
+    }
+  }
+</style>
